@@ -1,4 +1,0 @@
-<aura:interface description="Interface template" extends="c:demo_For_Aura_Interface">
-    <aura:attribute name="example" type="String" default="variable of the component demo20240325" description="An example attribute." />
-    <aura:attribute name="auraInterface01" type="String" />
-</aura:interface>

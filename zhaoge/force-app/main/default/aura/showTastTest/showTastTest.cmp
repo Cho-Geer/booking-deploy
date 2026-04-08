@@ -1,9 +1,0 @@
-<aura:component implements="flexipage:availableForAllPageTypes">
-    <!-- <lightning:notificationsLibrary aura:id="notifLb" /> -->
-
-    <aura:attribute name="str" type="String"></aura:attribute>
-
-    <lightning:card>
-        <lightning:input class="slds-m-around_small" label="テキスト本文: " value="{!v.str}" onchange="{!c.myAction}"></lightning:input>
-    </lightning:card>
-</aura:component>

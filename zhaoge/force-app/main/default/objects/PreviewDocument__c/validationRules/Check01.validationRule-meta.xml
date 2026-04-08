@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
-    <fullName>Check01</fullName>
-    <active>true</active>
-    <errorConditionFormula>NOT( ISNULL(PublishStartDate__c ) ) &amp;&amp;  NOT( ISNULL(PublishEndDate__c ) ) &amp;&amp;  PublishStartDate__c &gt; PublishEndDate__c</errorConditionFormula>
-    <errorMessage>掲載開始日は掲載終了日により以降の日付を指定できません。</errorMessage>
-</ValidationRule>

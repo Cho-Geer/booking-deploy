@@ -1,5 +1,0 @@
-<apex:component >
-<apex:attribute name="layName" description="" type="String"></apex:attribute>
-
-<span style="color:black;font:bolder">{!layName}</span>
-</apex:component>

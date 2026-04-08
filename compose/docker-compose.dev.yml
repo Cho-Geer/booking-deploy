@@ -1,0 +1,84 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: booking-postgres-dev
+    environment:
+      POSTGRES_DB: booking_system
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - booking_postgres_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d booking_system"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: booking-redis-dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - booking_redis_dev:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  migration:
+    image: ${BACKEND_MIGRATION_IMAGE}
+    container_name: booking-migration-dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ../env/dev/backend.env
+    command: ["npm", "run", "prisma:deploy"]
+    restart: "no"
+
+  backend:
+    image: ${BACKEND_IMAGE}
+    container_name: booking-backend-dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - ../env/dev/backend.env
+    ports:
+      - "3001:3001"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3001/v1/health').then((res)=>{if(!res.ok) process.exit(1)}).catch(()=>process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  frontend:
+    image: ${FRONTEND_IMAGE}
+    container_name: booking-frontend-dev
+    depends_on:
+      backend:
+        condition: service_healthy
+    env_file:
+      - ../env/dev/frontend.env
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+volumes:
+  booking_postgres_dev:
+  booking_redis_dev:

@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<RecordType xmlns="http://soap.sforce.com/2006/04/metadata">
-    <fullName>How</fullName>
-    <active>true</active>
-    <description>For step-by-step instructions</description>
-    <label>How To</label>
-</RecordType>

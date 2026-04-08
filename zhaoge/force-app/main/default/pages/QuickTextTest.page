@@ -1,5 +1,0 @@
-<apex:page standardController="Case" showQuickActionVfHeader="false">
-    <apex:pageBlock title="クイックテキスト確認">
-        <apex:outputText value="{! $ObjectType.QuickText.accessible}"></apex:outputText>
-    </apex:pageBlock>
-</apex:page>

@@ -1,3 +1,0 @@
-<aura:interface description="Interface template">
-    <aura:attribute name="auraInterface01" type="String" default="variable demo_For_Aura_Interface" description="An example attribute." />
-</aura:interface>

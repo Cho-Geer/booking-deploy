@@ -1,9 +1,0 @@
-<aura:component>
-    <aura:handler name="init" value="{!this}" action="{!c.handleInit}"></aura:handler>
-    <aura:attribute name="values" type="List"></aura:attribute>
-    <div class="slds-panel">value:
-        <aura:iteration var="value" items="{!v.values}">
-            {!value}
-        </aura:iteration>
-    </div>
-</aura:component>

@@ -1,6 +1,0 @@
-<aura:component>
-    <aura:attribute name="scrollFlg" type="Boolean"></aura:attribute>
-    <div style="overflow:hidden;">
-        <lightning:listView objectApiName="Contact" listName="AllContacts" showSearchBar="true" rows="20" showActionBar="true" showRowLevelActions="true" enableInlineEdit="true"></lightning:listView>
-    </div>
-</aura:component>

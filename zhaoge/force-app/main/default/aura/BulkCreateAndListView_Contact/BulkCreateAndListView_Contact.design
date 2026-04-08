@@ -1,5 +1,0 @@
-<design:component>
-    <design:attribute name="subject" label="Subject" description="Name of the person you want to greet" />
-    <design:attribute name="greeting" label="Greeting" />
-    <design:attribute name="componentHeight" label="コンポーネント幅（整数min:5,max:7,初期化:5）" min="5" max="7"></design:attribute>
-</design:component>

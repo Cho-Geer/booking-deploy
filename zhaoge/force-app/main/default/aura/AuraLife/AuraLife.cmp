@@ -1,5 +1,0 @@
-<aura:component implements="flexipage:availableForAllPageTypes">
-    <aura:handler name="init" value="{!this}" action="{!c.doInit}"></aura:handler>
-    <aura:handler event="aura:waiting" value="{!this}" action="{!c.waiting}"></aura:handler>
-    <aura:handler event="aura:doneWaiting" value="{!this}" action="{!c.doneWaiting}"></aura:handler>
-</aura:component>

@@ -1,0 +1,56 @@
+# 部署特定规则
+# 敏感环境文件（包含数据库密码、JWT密钥等，切勿提交）
+compose/*.env
+env/*/*.env
+
+# 本地覆盖配置
+docker-compose.override.yml
+*.local.yml
+
+# 日志和上传目录
+logs/
+uploads/
+
+# 与 booking-backend 和 booking-frontend 保持一致的规则
+
+# 工具和临时目录
+/.qoder
+/.sfdx
+/.trae
+/.trae-aicc
+/.clinerules
+
+# 操作系统文件（不应提交）
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# 临时文件（不应提交）
+*.log
+*.tmp
+*.temp
+*.pid
+*.seed
+*.pid.lock
+# 编辑器临时文件
+*~
+*.swp
+*.swo
+
+# IDE 配置文件（不应提交，但部分配置可共享）
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

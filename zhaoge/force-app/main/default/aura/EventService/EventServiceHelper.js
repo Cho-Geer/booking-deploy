@@ -1,5 +1,0 @@
-({
-    setHandleCompEvent: function(component, event) {
-
-    }
-})
