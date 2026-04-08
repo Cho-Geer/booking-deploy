@@ -1,0 +1,35 @@
+name: Verify Docker Images Deployment Readiness
+
+on:
+  workflow_dispatch:  # Manual trigger
+  push:
+    branches:
+      - master
+      - develop
+    paths:
+      - 'compose/**'
+      - 'scripts/verify-images.sh'
+      - '.github/workflows/verify-images.yml'
+
+jobs:
+  verify-images:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+
+    strategy:
+      matrix:
+        environment: [dev, prod]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Verify images for ${{ matrix.environment }}
+        run: |
+          chmod +x scripts/verify-images.sh
+          ./scripts/verify-images.sh ${{ matrix.environment }}
