@@ -1,293 +1,293 @@
-# Booking 系统部署指南
+# Booking System Deployment Guide
 
-本文档描述 Booking 系统的完整部署流程，涵盖开发环境与生产环境。
+This document describes the complete deployment process for the Booking system, covering both development and production environments.
 
-## 目录结构
+## Directory Structure
 
 ```
 booking-deploy/
-├── compose/                    # Docker Compose 配置文件
-│   ├── docker-compose.dev.yml     # 开发环境编排
-│   ├── docker-compose.prod.yml    # 生产环境编排
-│   ├── dev.compose.env.example    # 开发环境变量模板
-│   └── prod.compose.env.example   # 生产环境变量模板
-├── env/                       # 应用环境变量
-│   ├── dev/                   # 开发环境
+├── compose/                    # Docker Compose configuration files
+│   ├── docker-compose.dev.yml     # Development environment orchestration
+│   ├── docker-compose.prod.yml    # Production environment orchestration
+│   ├── dev.compose.env.example    # Development environment variables template
+│   └── prod.compose.env.example   # Production environment variables template
+├── env/                       # Application environment variables
+│   ├── dev/                   # Development environment
 │   │   ├── backend.env.example
 │   │   └── frontend.env.example
-│   └── prod/                  # 生产环境
+│   └── prod/                  # Production environment
 │       ├── backend.env.example
 │       └── frontend.env.example
-└── scripts/                   # 部署脚本
-    ├── deploy-dev.sh          # 开发环境部署脚本
-    ├── deploy-prod.sh         # 生产环境部署脚本
-    └── verify-images.sh       # 镜像验证脚本
+└── scripts/                   # Deployment scripts
+    ├── deploy-dev.sh          # Development environment deployment script
+    ├── deploy-prod.sh         # Production environment deployment script
+    └── verify-images.sh       # Image verification script
 ```
 
-## 环境准备
+## Environment Preparation
 
-### 1. Docker 与 Docker Compose
-- Docker Engine 20.10+ 或 Docker Desktop
-- Docker Compose v2+（推荐）或 docker-compose v1.29+
+### 1. Docker and Docker Compose
+- Docker Engine 20.10+ or Docker Desktop
+- Docker Compose v2+ (recommended) or docker-compose v1.29+
 
-### 2. 环境变量文件准备
+### 2. Environment Variables Preparation
 
-#### 开发环境
+#### Development Environment
 ```bash
-# 复制模板文件
+# Copy template files
 cd booking-deploy
 
-# Compose 环境变量
+# Compose environment variables
 cp compose/dev.compose.env.example compose/dev.compose.env
-# 编辑 dev.compose.env，更新 Docker Hub 镜像地址（如果需要）
+# Edit dev.compose.env to update Docker Hub image addresses if needed
 
-# 应用环境变量
+# Application environment variables
 cp env/dev/backend.env.example env/dev/backend.env
 cp env/dev/frontend.env.example env/dev/frontend.env
-# 编辑 .env 文件，设置实际值（如 JWT_SECRET 等）
+# Edit .env files and set actual values (e.g., JWT_SECRET, etc.)
 ```
 
-#### 生产环境
+#### Production Environment
 ```bash
 cd booking-deploy
 cp compose/prod.compose.env.example compose/prod.compose.env
 cp env/prod/backend.env.example env/prod/backend.env
 cp env/prod/frontend.env.example env/prod/frontend.env
 
-# 重要：生产环境需要设置强密码和真实密钥
+# Important: Production environment requires strong passwords and real secrets
 ```
 
-## 镜像标签策略
+## Image Tagging Strategy
 
-Booking 系统的 CI/CD 流水线会自动生成多种类型的 Docker 镜像标签，每种标签有不同的用途和可靠性特征：
+The Booking system's CI/CD pipeline automatically generates multiple types of Docker image tags, each with different purposes and reliability characteristics:
 
-### 标签类型
+### Tag Types
 
-| 标签类型 | 格式示例 | 可变性 | 推荐用途 | 可靠性 |
-|----------|----------|--------|----------|--------|
-| **分支标签** | `dev`, `main` | **可变** - 每次推送都会更新 | 快速开发、集成测试 | 低 - 不适合生产 |
-| **提交标签** | `dev-abc123`, `main-def456` | **不可变** - 绑定到特定提交 | 可靠部署、回滚、审计 | 高 - 生产推荐 |
-| **语义版本** | `v1.0.0`, `v1.2.3` | **不可变** - 版本化发布 | 正式发布、版本管理 | 最高 - 生产最佳实践 |
-| **PR 标签** | `pr-123` | **可变** - PR 构建 | PR 验证、代码评审 | 低 - 仅临时使用 |
-| **latest** | `latest` | **可变** - main 分支最新 | 开发便利性 | 低 - 禁止用于生产 |
+| Tag Type | Format Example | Mutability | Recommended Use | Reliability |
+|----------|---------------|------------|----------------|-------------|
+| **Branch Tags** | `dev`, `main` | **Mutable** - Updated on every push | Rapid development, integration testing | Low - Not suitable for production |
+| **Commit Tags** | `dev-abc123`, `main-def456` | **Immutable** - Tied to specific commits | Reliable deployment, rollback, auditing | High - Recommended for production |
+| **Semantic Version** | `v1.0.0`, `v1.2.3` | **Immutable** - Versioned releases | Official releases, version management | Highest - Best practice for production |
+| **PR Tags** | `pr-123` | **Mutable** - PR builds | PR verification, code review | Low - For temporary use only |
+| **latest** | `latest` | **Mutable** - Latest from main branch | Development convenience | Low - Prohibited for production |
 
-### 选择指南
+### Selection Guide
 
-1. **开发环境**:
-   - 快速迭代: 使用 `dev` 分支标签
-   - 可靠测试: 使用 `dev-<commit-hash>` 提交标签
+1. **Development Environment**:
+   - Rapid iteration: Use `dev` branch tag
+   - Reliable testing: Use `dev-<commit-hash>` commit tag
 
-2. **生产环境**:
-   - **必须使用不可变标签**: 提交标签或语义版本标签
-   - 紧急修复: 使用 `main-<commit-hash>`
-   - 正式发布: 使用 `v1.0.0` 等语义版本
-   - **禁止使用 `main` 或 `latest` 标签**
+2. **Production Environment**:
+   - **Must use immutable tags**: Commit tags or semantic version tags
+   - Emergency fixes: Use `main-<commit-hash>`
+   - Official releases: Use semantic versions like `v1.0.0`
+   - **Prohibited: `main` or `latest` tags**
 
-### 镜像验证
+### Image Verification
 
-所有镜像都经过真实部署拓扑的验证：
-- ✅ 包含 PostgreSQL 和 Redis 依赖
-- ✅ 运行数据库迁移
-- ✅ 验证健康端点 (`/v1/health`)
-- ✅ 检查数据库和 Redis 连接状态
-- ✅ 验证前端可访问性
+All images are verified with real deployment topology:
+- ✅ Include PostgreSQL and Redis dependencies
+- ✅ Run database migrations
+- ✅ Verify health endpoint (`/v1/health`)
+- ✅ Check database and Redis connection status
+- ✅ Verify frontend accessibility
 
-### 查看可用标签
+### View Available Tags
 
-镜像标签由 GitHub Actions 工作流自动生成：
-- 后端镜像: [booking-backend/.github/workflows/backend-image.yml](../booking-backend/.github/workflows/backend-image.yml)
-- 前端镜像: [booking-frontend/.github/workflows/frontend-image.yml](../booking-frontend/.github/workflows/frontend-image.yml)
-- 迁移镜像: 专用 `booking-backend-migration` 镜像
+Image tags are automatically generated by GitHub Actions workflows:
+- Backend images: [booking-backend/.github/workflows/backend-image.yml](../booking-backend/.github/workflows/backend-image.yml)
+- Frontend images: [booking-frontend/.github/workflows/frontend-image.yml](../booking-frontend/.github/workflows/frontend-image.yml)
+- Migration images: Dedicated `booking-backend-migration` image
 
-### 回滚操作
+### Rollback Operations
 
-要回滚到之前的版本：
-1. 查找之前的提交标签（如 `main-abc123def`）
-2. 更新 `prod.compose.env` 文件中的镜像标签
-3. 重新运行部署脚本
+To rollback to a previous version:
+1. Find the previous commit tag (e.g., `main-abc123def`)
+2. Update image tags in `prod.compose.env` file
+3. Re-run the deployment script
 
 ```bash
-# 回滚到特定提交
+# Rollback to specific commit
 BACKEND_IMAGE=docker.io/cho-geer/booking-backend:main-previous-commit
 BACKEND_MIGRATION_IMAGE=docker.io/cho-geer/booking-backend-migration:main-previous-commit
 FRONTEND_IMAGE=docker.io/cho-geer/booking-frontend:main-previous-commit
 ```
 
-## 部署流程
+## Deployment Process
 
-### 开发环境部署
+### Development Environment Deployment
 ```bash
-# 进入 booking-deploy 目录
+# Enter booking-deploy directory
 cd booking-deploy
 
-# 运行部署脚本
+# Run deployment script
 ./scripts/deploy-dev.sh
 ```
 
-部署脚本执行以下步骤：
-1. **检查环境变量文件**是否存在
-2. **拉取最新镜像**从 Docker Hub
-3. **执行数据库迁移**（独立 migration 服务）
-4. **启动所有服务**（PostgreSQL, Redis, Backend, Frontend）
-5. **健康检查**验证所有服务可用
-   - 后端健康端点：`http://localhost:3001/v1/health`
-   - 后端 Swagger：`http://localhost:3001/api/docs`
-   - 前端页面：`http://localhost:3000`
+The deployment script performs the following steps:
+1. **Check for environment variable files** existence
+2. **Pull latest images** from Docker Hub
+3. **Execute database migrations** (independent migration service)
+4. **Start all services** (PostgreSQL, Redis, Backend, Frontend)
+5. **Health check** to verify all services are available
+   - Backend health endpoint: `http://localhost:3001/v1/health`
+   - Backend Swagger: `http://localhost:3001/api/docs`
+   - Frontend page: `http://localhost:3000`
 
-### 生产环境部署
+### Production Environment Deployment
 ```bash
 cd booking-deploy
 ./scripts/deploy-prod.sh
 ```
 
-生产环境部署流程与开发环境相同，但使用不同的配置：
-- 不同的 Docker Compose 文件 (`docker-compose.prod.yml`)
-- 不同的环境变量文件 (`prod.compose.env`, `env/prod/`)
-- 可能不同的网络配置和资源限制
+The production environment deployment process is the same as development environment but uses different configurations:
+- Different Docker Compose file (`docker-compose.prod.yml`)
+- Different environment variable files (`prod.compose.env`, `env/prod/`)
+- Possibly different network configurations and resource constraints
 
-## 服务架构
+## Service Architecture
 
-### 开发环境服务
-| 服务 | 镜像 | 端口 | 说明 |
-|------|------|------|------|
-| PostgreSQL | `postgres:16` | 5432 | 主数据库 |
-| Redis | `redis:7-alpine` | 6379 | 缓存和会话存储 |
-| Backend | `${BACKEND_IMAGE}` | 3001 | NestJS API 服务 |
-| Frontend | `${FRONTEND_IMAGE}` | 3000 | Next.js 前端应用 |
-| Migration | `${BACKEND_MIGRATION_IMAGE}` | - | 数据库迁移服务 |
+### Development Environment Services
+| Service | Image | Port | Description |
+|---------|-------|------|-------------|
+| PostgreSQL | `postgres:16` | 5432 | Main database |
+| Redis | `redis:7-alpine` | 6379 | Cache and session storage |
+| Backend | `${BACKEND_IMAGE}` | 3001 | NestJS API service |
+| Frontend | `${FRONTEND_IMAGE}` | 3000 | Next.js frontend application |
+| Migration | `${BACKEND_MIGRATION_IMAGE}` | - | Database migration service |
 
-### 生产环境差异
-- 可能使用外部数据库（如 RDS）而非容器化 PostgreSQL
-- 可能使用外部 Redis 集群
-- 可能添加负载均衡和监控服务
-- 资源限制和重启策略不同
+### Production Environment Differences
+- May use external databases (e.g., RDS) instead of containerized PostgreSQL
+- May use external Redis clusters
+- May add load balancing and monitoring services
+- Different resource constraints and restart policies
 
-## 数据库迁移
+## Database Migrations
 
-### 独立迁移服务
-部署流程中包含独立的 `migration` 服务，确保：
-1. **迁移先于应用启动**执行
-2. **失败时停止部署**，防止应用连接到不一致的数据库
-3. **幂等性**：`prisma migrate deploy` 可安全重复执行
+### Independent Migration Service
+The deployment process includes an independent `migration` service to ensure:
+1. **Migrations execute before application startup**
+2. **Deployment stops on failure** to prevent applications from connecting to inconsistent databases
+3. **Idempotency**: `prisma migrate deploy` can be safely executed repeatedly
 
-### 手动执行迁移
+### Manual Migration Execution
 ```bash
-# 开发环境
+# Development environment
 docker compose -f compose/docker-compose.dev.yml --env-file compose/dev.compose.env run --rm migration
 
-# 生产环境
+# Production environment
 docker compose -f compose/docker-compose.prod.yml --env-file compose/prod.compose.env run --rm migration
 ```
 
-## 健康检查与监控
+## Health Checks and Monitoring
 
-### 内置健康检查
-- **后端**: `GET /v1/health` - 返回应用、数据库、Redis 状态
-- **PostgreSQL**: Docker 健康检查使用 `pg_isready`
-- **Redis**: Docker 健康检查使用 `redis-cli ping`
+### Built-in Health Checks
+- **Backend**: `GET /v1/health` - Returns application, database, and Redis status
+- **PostgreSQL**: Docker health check uses `pg_isready`
+- **Redis**: Docker health check uses `redis-cli ping`
 
-### 部署后验证
-部署脚本自动验证：
-1. 后端健康端点返回 `200 OK`
-2. Swagger UI 可访问
-3. 前端首页可访问
+### Post-Deployment Verification
+The deployment script automatically verifies:
+1. Backend health endpoint returns `200 OK`
+2. Swagger UI is accessible
+3. Frontend homepage is accessible
 
-### 手动验证
+### Manual Verification
 ```bash
-# 检查后端健康
+# Check backend health
 curl http://localhost:3001/v1/health | jq .
 
-# 检查服务状态
+# Check service status
 docker compose -f compose/docker-compose.dev.yml --env-file compose/dev.compose.env ps
 ```
 
-## 故障排除
+## Troubleshooting
 
-### 常见问题
+### Common Issues
 
-#### 1. 环境变量文件缺失
+#### 1. Missing Environment Variable Files
 ```
 Missing booking-deploy/compose/dev.compose.env
 Create it from booking-deploy/compose/dev.compose.env.example
 ```
-**解决**: 复制模板文件并填写实际值。
+**Solution**: Copy the template file and fill in actual values.
 
-#### 2. 迁移失败
+#### 2. Migration Failure
 ```
 Error: P3009: migrate found failed migrations in the target database
 ```
-**解决**:
-- 检查数据库连接字符串
-- 手动修复迁移：`docker compose exec postgres psql -U postgres -d booking_system`
-- 查看迁移日志
+**Solution**:
+- Check database connection string
+- Manually fix migrations: `docker compose exec postgres psql -U postgres -d booking_system`
+- View migration logs
 
-#### 3. 健康检查失败
-部署脚本在 80 秒后超时。
-**解决**:
-- 检查服务日志：`docker compose logs backend`
-- 验证数据库连接：`docker compose exec backend npm run prisma:deploy`
-- 检查端口冲突
+#### 3. Health Check Failure
+The deployment script times out after 80 seconds.
+**Solution**:
+- Check service logs: `docker compose logs backend`
+- Verify database connection: `docker compose exec backend npm run prisma:deploy`
+- Check for port conflicts
 
-#### 4. 镜像拉取失败
+#### 4. Image Pull Failure
 ```
 Error response from daemon: pull access denied for cho-geer/booking-backend
 ```
-**解决**:
-- 确认 Docker Hub 仓库存在且公开
-- 或更新 `compose/dev.compose.env` 使用本地构建的镜像
+**Solution**:
+- Confirm the Docker Hub repository exists and is public
+- Or update `compose/dev.compose.env` to use locally built images
 
-### 日志查看
+### Viewing Logs
 ```bash
-# 查看所有服务日志
+# View all service logs
 docker compose -f compose/docker-compose.dev.yml --env-file compose/dev.compose.env logs
 
-# 查看特定服务日志
+# View specific service logs
 docker compose -f compose/docker-compose.dev.yml --env-file compose/dev.compose.env logs backend
 
-# 实时跟踪日志
+# Tail logs in real-time
 docker compose -f compose/docker-compose.dev.yml --env-file compose/dev.compose.env logs -f
 ```
 
-## 升级与回滚
+## Upgrades and Rollbacks
 
-### 版本升级
-1. **更新镜像标签**在 `compose/dev.compose.env` 或 `compose/prod.compose.env`
-2. **执行部署脚本**
-3. **验证新版本**功能正常
+### Version Upgrades
+1. **Update image tags** in `compose/dev.compose.env` or `compose/prod.compose.env`
+2. **Execute deployment script**
+3. **Verify new version** functionality
 
-### 回滚操作
-1. **恢复旧镜像标签**在环境变量文件
-2. **执行部署脚本**
-3. **数据库前向兼容**：确保旧版本应用能工作在当前数据库模式
+### Rollback Operations
+1. **Restore old image tags** in environment variable files
+2. **Execute deployment script**
+3. **Database forward compatibility**: Ensure old version applications can work with current database schema
 
-### 零停机部署（未来扩展）
-当前部署策略为滚动重启，未来可扩展为：
-- 蓝绿部署
-- 金丝雀发布
-- 使用 Docker Swarm 或 Kubernetes
+### Zero-Downtime Deployment (Future Extension)
+The current deployment strategy uses rolling restarts, future extensions could include:
+- Blue-green deployment
+- Canary releases
+- Using Docker Swarm or Kubernetes
 
-## 安全注意事项
+## Security Considerations
 
-### 1. 敏感信息管理
-- **切勿提交** `.env` 文件到版本控制
-- 使用密钥管理服务（如 AWS Secrets Manager）存储生产密钥
-- 定期轮换 JWT 密钥和数据库密码
+### 1. Sensitive Information Management
+- **Never commit** `.env` files to version control
+- Use secret management services (e.g., AWS Secrets Manager) for production secrets
+- Regularly rotate JWT secrets and database passwords
 
-### 2. 网络安全
-- 生产环境使用专用网络
-- 限制数据库和 Redis 的外部访问
-- 启用防火墙规则
+### 2. Network Security
+- Use dedicated networks for production environments
+- Restrict external access to database and Redis
+- Enable firewall rules
 
-### 3. 镜像安全
-- 定期扫描镜像漏洞
-- 使用最小化基础镜像
-- 及时更新依赖
+### 3. Image Security
+- Regularly scan images for vulnerabilities
+- Use minimal base images
+- Update dependencies promptly
 
-## 自动化 CI/CD（未来）
+## Automated CI/CD (Future)
 
-当前部署为手动触发，未来可集成到 CI/CD 流水线：
+Current deployment is manually triggered, future integration with CI/CD pipelines:
 
-### GitHub Actions 工作流
+### GitHub Actions Workflow
 ```yaml
 name: Deploy to Production
 on:
@@ -309,44 +309,44 @@ jobs:
             ./scripts/deploy-prod.sh
 ```
 
-### 审批流程
-生产部署应包含：
-1. 代码审查
-2. 自动化测试通过
-3. 人工审批
-4. 部署后验证
+### Approval Process
+Production deployments should include:
+1. Code review
+2. Automated test passing
+3. Manual approval
+4. Post-deployment verification
 
 ---
 
-## 附录
+## Appendix
 
-### A. 手动部署命令参考
+### A. Manual Deployment Command Reference
 ```bash
-# 拉取镜像
+# Pull images
 docker compose -f compose/docker-compose.dev.yml --env-file compose/dev.compose.env pull
 
-# 执行迁移
+# Execute migrations
 docker compose -f compose/docker-compose.dev.yml --env-file compose/dev.compose.env run --rm migration
 
-# 启动服务
+# Start services
 docker compose -f compose/docker-compose.dev.yml --env-file compose/dev.compose.env up -d
 
-# 停止服务
+# Stop services
 docker compose -f compose/docker-compose.dev.yml --env-file compose/dev.compose.env down
 
-# 查看状态
+# View status
 docker compose -f compose/docker-compose.dev.yml --env-file compose/dev.compose.env ps
 ```
 
-### B. 环境变量说明
-见各 `.env.example` 文件注释。
+### B. Environment Variables Description
+See comments in each `.env.example` file.
 
-### C. 相关文档
-- [Docker Hub 镜像构建配置](../booking-backend/docs/docker-hub-setup.md)
-- [后端 API 文档](../booking-backend/docs/api-contract.md)
-- [前端开发指南](../booking-frontend/README.md)
+### C. Related Documentation
+- [Docker Hub Image Build Configuration](../booking-backend/docs/docker-hub-setup.md)
+- [Backend API Documentation](../booking-backend/docs/api-contract.md)
+- [Frontend Development Guide](../booking-frontend/README.md)
 
 ---
 
-*最后更新: 2026-04-07*  
-*维护者: DevOps 团队*
+*Last updated: 2026-04-08*
+*Maintained by: DevOps Team*
