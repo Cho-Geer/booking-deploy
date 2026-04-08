@@ -1,7 +1,14 @@
 name: Verify Docker Images Deployment Readiness
 
 on:
-  workflow_dispatch:  # Manual trigger
+  pull_request:
+    branches:
+      - master
+      - develop
+    paths:
+      - 'compose/**'
+      - 'scripts/verify-images.sh'
+      - '.github/workflows/verify-images.yml'
   push:
     branches:
       - master
@@ -10,6 +17,7 @@ on:
       - 'compose/**'
       - 'scripts/verify-images.sh'
       - '.github/workflows/verify-images.yml'
+  workflow_dispatch:
 
 jobs:
   verify-images:
