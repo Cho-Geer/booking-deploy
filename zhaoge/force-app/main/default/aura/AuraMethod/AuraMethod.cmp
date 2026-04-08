@@ -1,0 +1,18 @@
+<aura:component implements="flexipage:availableForAllPageTypes">
+    <aura:attribute name="str" type="String"></aura:attribute>
+    <aura:handler name="fireEvent" event="c:Fw_CompEvent" action="{!c.myAction}"></aura:handler>
+    <aura:handler event="c:Fw_AppEvent" action="{!c.handleAppEvent}"></aura:handler>
+
+    <article class="slds-card">
+        <div class="slds-card__header">
+            <h2 class="slds-card__header-title">
+                <lightning:formattedText value="{!v.str}"></lightning:formattedText>
+            </h2>
+        </div>
+        <div class="slds-card__body">
+            <c:AuraMethodSample></c:AuraMethodSample>
+            <c:AuraMethodSample02></c:AuraMethodSample02>
+        </div>
+        <div class="slds-card__footer">AuraMethod</div>
+    </article>
+</aura:component>

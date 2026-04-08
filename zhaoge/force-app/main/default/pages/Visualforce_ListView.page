@@ -1,0 +1,124 @@
+<apex:page controller="MyListViewController">
+    <apex:includeScript value="{! URLFOR($Resource.jQueryForVforce)}"></apex:includeScript>
+    <apex:includeScript value="{! URLFOR($Resource.jQueryMobileForVforce,'jquery.mobile-1.4.5.min.js')}"></apex:includeScript>
+    <script type="text/javascript">
+        function defaultCollapseAll() {
+            this.previousHandler = window.onload;
+            this.execute = function () {
+                if (this.previousHandler != null) this.previousHandler();
+                // var imgs = window.top.document.getElementsByTagName('img');
+                var imgs = $("[data-id=ListView]").find("img");
+                for (var x in imgs) {
+                    if (imgs[x].className == 'hideListButton') {
+                        twistSection(imgs[x]);
+                    }
+                }
+            }
+        }
+        window.onload = new defaultCollapseAll().execute;
+    </script>
+    <apex:messages />
+    <apex:form >
+        <apex:pageBlock title="取引先責任者リスト画面" html-style="color:black;">
+            <apex:pageBlockButtons >
+                <apex:commandButton value="取引先責任者リスト作成" action="{! createConList}"></apex:commandButton>
+                <apex:commandButton value="取引先責任者リスト削除" action="{! deleteConList}"></apex:commandButton>
+            </apex:pageBlockButtons>
+            <apex:pageBlockSection html-data-id="variable" title="variableビュー" columns="2">
+                <apex:inputText value="{! text}"></apex:inputText>
+                <apex:commandButton value="検索" action="{! docon}"></apex:commandButton>
+                <apex:pageBlockSectionItem >
+                    <apex:variable value="{! con}" var="c"></apex:variable>
+                    <apex:pageBlockSection columns="1">
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="First Name"></apex:outputLabel>
+                            <apex:outputText value="{! c.FirstName}"></apex:outputText>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Last Name"></apex:outputLabel>
+                            <apex:outputText value="{! c.LastName}"></apex:outputText>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="携帯"></apex:outputLabel>
+                            <apex:outputText value="{! c.Phone}"></apex:outputText>
+                        </apex:pageBlockSectionItem>
+                    </apex:pageBlockSection>
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+        <apex:pageBlock html-data-id="ListView" title="リスト画面">
+            <apex:outputPanel layout="block" style="overflow:auto;height:280px;">
+            <apex:pageBlockSection id="pageBlockTable" title="pageBlockTableビュー" html-style="font-size:samll;font-weight:bold;color:red;border:5px;"
+                columns="1" showHeader="true" collapsible="true" rendered="{! if(ConList.size>0,true,false)}">
+                <apex:outputPanel layout="block" style="overflow:auto;height:250px;">
+                    <apex:pageBlockTable value="{! ConList}" var="con">
+                        <apex:column >
+                            <apex:facet name="header">First Name</apex:facet>
+                            <apex:outputField value="{! con.FirstName}"></apex:outputField>
+                        </apex:column>
+                        <apex:column >
+                            <apex:facet name="header">Last Name</apex:facet>
+                            <apex:outputField value="{! con.LastName}"></apex:outputField>
+                        </apex:column>
+                        <apex:column >
+                            <apex:facet name="header">携帯</apex:facet>
+                            <apex:outputField value="{! con.Phone}"></apex:outputField>
+                        </apex:column>
+                    </apex:pageBlockTable>
+                </apex:outputPanel>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection id="dataTable" html-name="dataTable" title="dataTableビュー" columns="1" collapsible="true" rendered="{! IF(ConList.size>0,true,false)}">
+                <apex:pageBlockSectionItem labelStyle="font-size:larger;font-weight:bold;color:blue;text-align:right;" dataStyle="font-size:small;font-weight:bold;color:blue;text-align:right;">
+                    <apex:outputPanel layout="block" style="overflow:auto;height:250px;">
+                        <apex:dataTable value="{! ConList}" var="con">
+                            <apex:column >
+                                <apex:facet name="header">First Name</apex:facet>
+                                <apex:outputField value="{! con.FirstName}"></apex:outputField>
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header">Last Name</apex:facet>
+                                <apex:outputField value="{! con.LastName}"></apex:outputField>
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header">携帯</apex:facet>
+                                <apex:outputField value="{! con.Phone}"></apex:outputField>
+                            </apex:column>
+                        </apex:dataTable>
+                    </apex:outputPanel>
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection id="dataList" title="dataListビュー" columns="1" collapsible="true" rendered="{! IF(ConList.size>0,true,false)}">
+                <apex:pageBlockSectionItem >
+                    <apex:outputPanel layout="block" style="overflow:auto;height:250px;">
+                        <apex:dataList value="{! ConList}" var="con" type="a">
+                            <apex:outputField value="{! con.FirstName}"></apex:outputField>
+                            <apex:outputField value="{! con.LastName}"></apex:outputField>
+                            <apex:outputField value="{! con.Phone}"></apex:outputField>
+                        </apex:dataList>
+                    </apex:outputPanel>
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection id="repeat" title="repeatビュー" columns="1" collapsible="true" rendered="{! IF(ConList.size>0,true,false)}">
+                <apex:outputPanel layout="block" style="overflow:auto;height:250px;">
+                    <table>
+                        <thead>
+                            <th>First Name</th>
+                            <th>Last Name</th>
+                            <th>Phone</th>
+                        </thead>
+                        <tbody>
+                            <apex:repeat value="{! ConList}" var="con">
+                                <tr>
+                                    <td>{! con.FirstName}</td>
+                                    <td>{! con.LastName}</td>
+                                    <td>{! con.Phone}</td>
+                                </tr>
+                            </apex:repeat>
+                        </tbody>
+                    </table>
+                </apex:outputPanel>
+            </apex:pageBlockSection>
+            </apex:outputPanel>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

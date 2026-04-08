@@ -1,0 +1,134 @@
+<apex:page standardController="Account" showHeader="true" sidebar="false" standardStylesheets="true" lightningStylesheets="false" applyHtmlTag="true" applyBodyTag="false">
+    <apex:includeScript value="{! $Resource.jQueryForVforce}"></apex:includeScript>
+    <apex:includeScript value="{! URLFOR($Resource.jQueryMobileForVforce,'jquery.mobile-1.4.5.min.js')}"></apex:includeScript>
+    <apex:stylesheet value="{! $Resource.AppStylesheet}"/>
+    <apex:stylesheet value="{!
+          URLFOR($Resource.jQueryMobileForVforce,'jquery.mobile-1.4.5.css')}"/>
+    
+    <script src="/soap/ajax/40.0/connection.js" type="text/javascript"></script>
+    <script type="text/javascript">
+     sforce.connection.sessionId = '{! $Api.Session_ID}';
+    	var uiPrefQuery = "Select Id,UserPreferencesLightningExperiencePreferred "+
+            "From User Where Id = '{! $User.Id}'";
+    	var userThemePreferenceResult = sforce.connection.query(uiPrefQuery);
+    
+    	document.addEventListener('DOMContentLoaded',function(event){
+        	document.getElementById('userThemePreferenceResult').innerHTML = userThemePreferenceResult;
+            document.getElementById('seId').innerHTML =	sforce.connection.sessionId; 
+        });
+      $(document).ready(function(){
+        $("[data-id=it]").on("change",function(){
+        	var v = this.value;
+            var account = new sforce.SObject("Account");
+            account.Name = v;
+            var result = sforce.connection.create([account]);
+			if(result[0].getBoolean("success")){
+                var str = result[0].id;
+				var rcLst = sforce.connection.query("Select Id, Name from Account Where Account.Id = '"+ str +"'");
+            	$("[data-id=out]").text(rcLst.getArray("records")[0].Name);
+                $("#ou").val(rcLst.getArray("records")[0].Name);
+            }else{
+                alert("失敗しました");
+            	$("[data-id=out]").text("失敗しました");
+            }            
+        });
+        
+    });
+        </script>
+    <h1 class="asideText">
+        userThemePreferenceResult
+    </h1>
+    <apex:form >
+    <apex:inputText html-class="asideText" html-data-id="it" html-placeholder="入力してください！" />
+	</apex:form>
+    <apex:outputText html-class="asideText" html-data-id="out" value=""></apex:outputText>
+    <output type="text" id="ou"></output>
+    <pre>
+		<span class="asideText" id="userThemePreferenceResult"></span>
+		<span class="asideText" id="seId"></span>
+	</pre>
+    <apex:outputField html-class="asideText" html-data-id="large" value="{! Account.Name}"/>
+    <apex:outputText value="{! $User.uiThemedisplayed}"></apex:outputText>
+    <p class="asideText">
+        {! Account.Name}
+    </p>
+    <apex:image alt="eye" title="eye" url="{! URLFOR($Resource.jQueryMobileForVforce,'images/icons-png/eye-black.png')}"/>
+    <html>
+        <body>
+            ssssssssss
+        </body>
+    </html>
+    <apex:pageBlock >
+    	<apex:pageBlockSection showHeader="false">
+            
+            <div>
+                <p class="asideText">
+                {! Account.Name}
+            </p>
+                <table class="table-stripe table-stroke">
+                    <thead>
+                    	<th>Name</th>
+                        <th>ssss</th>
+                    </thead>
+                    <tbody>
+                        <tr>
+                        <th>ssss</th>
+                            <th>eeeee</th>
+                        </tr>
+                        <tr>
+                    	<td>{! Account.Name}</td>
+                        <td>ssssddd</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+        </apex:pageBlockSection>
+        
+    </apex:pageBlock>
+    
+<!--    <apex:pageBlock title="User Status">
+    <c:fff />
+        <apex:pageBlockSection columns="3">
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="ユーザの名"></apex:outputLabel>
+            　　<apex:outputText value="{!$User.FirstName}"></apex:outputText>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem >
+            	<apex:outputLabel value="ユーザの姓"></apex:outputLabel>
+                <apex:outputText value="{! $User.LastName}"></apex:outputText>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem >
+            	<apex:outputLabel value="ユーザ名"></apex:outputLabel>
+                <apex:outputText value="{! $User.Username}"></apex:outputText>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem >
+            	<apex:outputText value="{! $User.FirstName}&' '&{!$User.LastName}"></apex:outputText>
+                <apex:outputText value="{! $user.FirstName &' '& $user.LastName}"></apex:outputText>
+            </apex:pageBlockSectionItem>
+        </apex:pageBlockSection>
+        <apex:pageBlockSection columns="1">
+            <apex:outputText value="{! today()}"></apex:outputText>
+            {!today()-7}
+            <apex:outputText value="{! year(today())}  {!Month(today())}"></apex:outputText>
+            {! $user.FirstName &' '& $user.Username}
+            {! 'aaaa'&' '&'ssss'}
+            {! '11'&' '&'222'}
+            {! 11+22}
+            {! sqrt(49)}
+            {! contains("salesforce.com","o")}
+            {! if(contains("salesforce.com","k"),year(today()),month(today()))}
+            <apex:outputLink title="sss" value="{! URLFOR($ACTION.ACCOUNT.NEW)}">Create Account</apex:outputLink>
+            <apex:outputLink value="{! URLFOR($ACTION.CONTACT.VIEW,'0035h000002GftqAAC',[AccountId='0015h000003BQlkAAG'])}">View CONtact</apex:outputLink>
+            <apex:outputLink value="{! URLFOR($page.ContactVF,'0035h000001EHfjAAG')}">Search Contact</apex:outputLink>
+            <apex:outputLink value="{! URLFOR($Resource.UtinityIcons,'/custom_resource/utility/activity.svg')}">画像</apex:outputLink>
+            {! BLANKVALUE('2','あり')}
+            {! ISblank('Contact.Phone')}
+            {! isnull('Contact.Phone')}
+            {!$ObjectType.Account.fields.Name.Type}
+            {! isnumber(text(123))}
+            {! isnumber($objecttype.contact.fields.phone.type)}
+        </apex:pageBlockSection>
+    </apex:pageBlock>-->
+    <apex:relatedList list="Contacts" pageSize="2"></apex:relatedList>
+</apex:page>

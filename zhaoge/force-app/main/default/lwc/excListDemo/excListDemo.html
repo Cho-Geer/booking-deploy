@@ -1,0 +1,44 @@
+<template>
+    <div class="slds-is-relative">
+        <lightning-layout multiple-rows="true">
+            <lightning-layout-item size="12" padding="small">
+                <lightning-layout>
+                    <div class="slds-grid slds-wrap slds-media" style="align-items: stretch;">
+                            <template for:each={items} for:item="item">
+                                <c-exc-list-item class="item" key={item.id} item-title={item.title} item-text={item.text}>
+                                </c-exc-list-item>
+                            </template>
+</div>
+</lightning-layout>
+</lightning-layout-item>
+<lightning-layout-item size="5" padding="small">
+    <div class="slds-m-around_medium">
+        <lightning-card title="要素数">
+            <div class="slds-grid slds-wrap slds-m-around_small">
+                <lightning-input data-id="sum" type="number" variant="label-hidden" required="true" label="Sum" value=50></lightning-input>
+                <lightning-button label="保存" variant="brand" value="" onclick={handleItemsSum}></lightning-button>
+            </div>
+        </lightning-card>
+    </div>
+</lightning-layout-item>
+<lightning-layout-item size="5" padding="small"></lightning-layout-item>
+<lightning-layout-item size="5" padding="small" class="slds-m-left_medium">
+    <lightning-card title="改ページDemo">
+        <div class="slds-grid slds-wrap slds-m-around_medium">
+            <c-exc-list-util item-count={itemCount} onpagenavigate={getpagenumber}></c-exc-list-util>
+        </div>
+    </lightning-card>
+</lightning-layout-item>
+</lightning-layout>
+</div>
+<!-- <lightning-layout>
+    <lightning-layout-item>
+        <lightning-input label="lifesyscal-hook" onblur={handleBlured}></lightning-input>
+    </lightning-layout-item>
+</lightning-layout> -->
+
+<hr/>
+<div class="slds-grid">
+    <!-- <c-lifesyscal-hook name={lifeName} onlifehook={handleLifeHook}></c-lifesyscal-hook> -->
+</div>
+</template>

@@ -1,0 +1,8 @@
+<aura:component>
+    <aura:attribute name="appText" type="String"></aura:attribute>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"></aura:handler>
+    <aura:handler event="c:Fw_AppEvent" action="{!c.handleAppEvent}"></aura:handler>
+
+    <lightning:formattedText value="{!v.appText}"></lightning:formattedText>
+    <lightning:button label="Button" value="button" onclick="{!c.handleAppEvent}"></lightning:button>
+</aura:component>

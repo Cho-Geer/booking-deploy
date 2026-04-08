@@ -1,0 +1,156 @@
+<apex:page standardController="Contact" extensions="ContactLayoutGetterController" standardStylesheets="false" lightningStylesheets="true"
+    showHeader="false" docType="html-5.0" applyBodyTag="false" applyHtmlTag="fasle">
+    <html>
+
+    <head>
+        <meta charset="UTF-8" />
+        <apex:slds ></apex:slds>
+        <apex:stylesheet value="{!$Resource.Icons}"></apex:stylesheet>
+        <apex:includeScript value="{!$Resource.jQueryForVforce}"></apex:includeScript>
+        <script src="../../soap/ajax/51.0/connection.js"></script>
+        <script type="text/javascript">
+            sforce.connection.sessionId = "{!GETSESSIONID()}";
+            jQuery.noConflict();
+            var vtheRecordTypeId = "{!theRecordTypeId}";
+            var vlayoutRecordTypeMapping = [];
+            jQuery(document).ready(function () {
+                let layoutResult = sforce.connection.describeLayout("Contact");
+                let layouts = layoutResult.getArray("layouts");
+                let recordTypeMap = layoutResult.getArray("recordTypeMappings")
+                let layoutArray = recordTypeMap.filter(record => {
+                    return layouts.some(element => { return record.layoutId === element.id; });
+                });
+                layoutArray.forEach(element => {
+                    vlayoutRecordTypeMapping.push({
+                        "layoutId": element.layoutId,
+                        "recordTypeId": element.recordTypeId
+                    });
+                });
+                // alert("layoutArray[0]: layoutId= " + layoutArray[0].layoutId + " recordTypeId= " + layoutArray[0].recordTypeId + "; layoutArray[1]: layoutId= " + layoutArray[1].layoutId + " recordTypeId= " + layoutArray[1].recordTypeId);
+                // alert("vlayoutRecordTypeMapping: " + JSON.stringify(vlayoutRecordTypeMapping));
+                let templayoutId = handleLayout(vlayoutRecordTypeMapping);
+                jQuery("[data-id='input']").val(templayoutId);
+                let tempFields = layouts.filter(element => {
+                    return element.id === templayoutId;
+                })[0];
+                console.debug(tempFields.getArray("detailLayoutSections"));
+                // alert(tempFields);
+            });
+            function handleLayout(array) {
+                let tmpLayoutIdArr = [];
+                tmpLayoutIdArr = array.filter(element => {
+                    // alert("element layoutId: " + element.layoutId + "  theRecordTypeId: " + vtheRecordTypeId);
+                    return element.recordTypeId === vtheRecordTypeId
+                });
+                // alert("tmpLayoutIdArr: " + tmpLayoutIdArr.length + "; " + tmpLayoutIdArr[0].layoutId);
+                return tmpLayoutIdArr[0].layoutId;
+            };
+        </script>
+    </head>
+
+    <body>
+        <div class="slds-scope">
+            <article>
+                <div class="slds-wrapper slds-m-around_small">
+                    <div class="slds-card">
+                        <div class="slds-card__header slds-m-bottom_medium">
+                            <div class="slds-media slds-media_center slds-has-flexi-truncate">
+                                <div class="slds-media__figure">
+                                    <span class="slds-icon_container slds-icon-standard-contact" title="contact">
+                                        <svg class="slds-icon slds-icon_small">
+                                            <use href="{!URLFOR($Resource.Icons,'standard-sprite/svg/symbols.svg#contact')}"></use>
+                                        </svg>
+                                    </span>
+                                </div>
+                                <div class="slds-media__body">
+                                    <h2 class="slds-card__header-title">ページレイアウト</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <apex:form id="layoutForm">
+                            <div class="slds-card__body">
+                                <div class="slds-m-around_small">
+                                    <div class="slds-page-header">
+                                        <div class="slds-page-header__row">
+                                            <div class="slds-page-header__col-title">
+                                                <div class="slds-media">
+                                                    <div class="slds-media__figure">
+                                                        <div class="slds-icon_container slds-icon-standard-contact">
+                                                            <svg class="slds-icon slds-page-header__icon">
+                                                                <use href="{!URLFOR($Resource.Icons,'standard-sprite/svg/symbols.svg#account')}"></use>
+                                                            </svg>
+                                                        </div>
+                                                    </div>
+                                                    <div class="slds-media__body">
+                                                        <div class="slds-page-header__name">
+                                                            <div class="slds-page-header__name-title">
+                                                                <h1>
+                                                                    <apex:outputLabel value="ページレイアウト名："></apex:outputLabel>
+                                                                    <span class="slds-page-header__title" data-id="span">span : {!layoutName}</span>
+                                                                </h1>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="slds-page-header__col-actions">
+                                                <div class="slds-page-header__controls">
+                                                    <div class="slds-page-header__control">
+                                                        <apex:commandButton styleClass="slds-button slds-button_brand" value="layoutName" action="{!getLayoutName}" reRender="layoutForm"></apex:commandButton>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="slds-page-header__row">
+                                            <div class="slds-page-header__col-meta">
+                                                <div class="slds-page-header__meta-text">
+                                                    <apex:outputText styleClass="slds-truncate" html-data-id="output" value="{!'outputText: ' + layoutName}"></apex:outputText>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="slds-page-header">
+                                            <div class="slds-page-header__row">
+                                                <div class="slds-page-header__col">
+                                                    <span><strong>取引先責任者</strong></span>
+                                                </div>
+                                            </div>
+                                            <div class="slds-page-header__row">
+                                                <div class="slds-page-header__col">
+                                                    <div class="slds-grid">
+                                                        <div class="slds-col">
+                                                            <apex:outputLabel styleClass="slds-text-align_left" style="vertical-align:middle;" value="LayoutId: "></apex:outputLabel>
+                                                        </div>
+                                                        <div class="slds-col">
+                                                            <apex:inputText html-data-id="input" title="LayoutId" label="LayoutId" value="{!theLayoutId}"></apex:inputText>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="slds-page-header__col">
+                                                    <div class="slds-grid">
+                                                        <div class="slds-col slds-m-left_small">
+                                                            <apex:outputLabel styleClass="slds-text-align_center" style="vertical-align:middle;" value="RecordTypeId: "></apex:outputLabel>
+                                                        </div>
+                                                        <div class="slds-col">
+                                                            <apex:outputText title="RecordTypeId" label="RecordTypeId" value="{!IF(ISNULL(theRecordTypeId),'取得しない',theRecordTypeId)}"></apex:outputText>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="slds-card__footer">
+                                <div class="slds-card__footer-action">
+                                    <span style="font:bolder;color:brown">テスト</span>
+                                </div>
+                            </div>
+                        </apex:form>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </body>
+
+    </html>
+</apex:page>

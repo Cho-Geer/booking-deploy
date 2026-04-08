@@ -1,0 +1,12 @@
+<aura:component>
+    <aura:registerEvent name="compEvent" type="c:Fw_auraCompEvent"></aura:registerEvent>
+
+    <aura:attribute name="textBody" type="String" default="入力してください"></aura:attribute>
+    <lightning:card>
+        <!-- <input label="本文" type="text" value="{!textBody}" onchange="{!c.myAction}"></input> -->
+        <lightning:input label="本文" value="{!v.textBody}" onchange="{!c.myAction}"></lightning:input>
+    </lightning:card>
+    <lightning:card>
+        <c:CompEventFireSample />
+    </lightning:card>
+</aura:component>

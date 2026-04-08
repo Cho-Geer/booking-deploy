@@ -1,0 +1,16 @@
+<aura:component>
+    <aura:attribute name="str" type="String"></aura:attribute>
+    <aura:attribute name="appStr" type="String"></aura:attribute>
+    <c:AuraMethodChild aura:id="AuraMethodSample"></c:AuraMethodChild>
+
+    <article class="slds-card slds-m-around_small">
+        <div class="slds-card__header">
+            <h2 class="slds-card__header-title">AuraMethodSample</h2>
+        </div>
+        <div class="slds-card__body">
+            <lightning:input label="Component Event" value="{!v.str}" onchange="{!c.myAction}"></lightning:input>
+            <lightning:input label="Application Event" value="{!v.appStr}" onchange="{!c.doAppEvent}"></lightning:input>
+        </div>
+        <div class="slds-card__footer">AuraMethodSample</div>
+    </article>
+</aura:component>

@@ -1,0 +1,16 @@
+<apex:page controller="AccountSearchController" showHeader="true" standardStylesheets="true" applyBodyTag="false" docType="html-5.0">
+    <apex:form >
+        <apex:pageBlock title="取引先検索画面">
+            <apex:pageMessages id="messagearea"></apex:pageMessages>
+            <apex:pageBlockSection >
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="取引先名"></apex:outputLabel>
+                    <apex:inputText value="{!ant}"></apex:inputText>
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+            <apex:pageBlockButtons >
+                <apex:commandButton value="検索" action="{!doSearch}"></apex:commandButton>
+            </apex:pageBlockButtons>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

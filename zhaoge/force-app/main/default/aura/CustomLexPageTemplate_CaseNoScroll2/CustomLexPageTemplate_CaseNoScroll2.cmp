@@ -1,0 +1,69 @@
+<aura:component implements="lightning:recordHomeTemplate">
+    <aura:attribute name="top" type="Aura.component[]"></aura:attribute>
+    <aura:attribute name="middle" type="Aura.component[]"></aura:attribute>
+    <aura:attribute name="middle_Path" type="Aura.component[]"></aura:attribute>
+    <aura:attribute name="bottom_left" type="Aura.component[]"></aura:attribute>
+    <aura:attribute name="bottom_right" type="Aura.component[]"></aura:attribute>
+    <aura:attribute name="scrollFlag" type="Boolean" default="true"></aura:attribute>
+    <aura:attribute name="isMiddleLabelOpen" type="String" default="非表示"></aura:attribute>
+    <aura:attribute name="sideBarOpened" type="Boolean" default="false"></aura:attribute>
+    <aura:attribute name="hasSubTab" type="Boolean" default="false"></aura:attribute>
+    <aura:attribute name="thisTabId" type="String" default="0"></aura:attribute>
+    <aura:handler name="init" value="{!this}" action="{!c.handleInit}"></aura:handler>
+    <aura:handler name="change" value="{!v.scrollFlag}" action="{!c.handleCssRerender}"></aura:handler>
+    <aura:handler name="change" value="{!v.isMiddleLabelOpen}" action="{!c.handleIsMiddleLabelOpen}"></aura:handler>
+    <aura:handler name="change" value="{!v.sideBarOpened}" action="{!c.handleMiddleFixedWidth}"></aura:handler>
+    <aura:handler name="change" value="{!v.hasSubTab}" action="{!c.handleRender}"></aura:handler>
+    <aura:handler name="render" value="{!this}" action="{!c.handleRender}"></aura:handler>
+    <aura:handler event="lightning:tabFocused" action="{!c.handleTabFocused}"></aura:handler>
+    <lightning:workspaceAPI aura:id="workspace"></lightning:workspaceAPI>
+    <ltng:require scripts="{!$Resource.jQueryMobileForVforce + '/jquery.mobile-1.4.5.min.js'}" />
+
+    <div aura:id="mainDiv" data-id="mainDiv" class="slds-is-relative"
+        style="box-sizing:border-box;height:100%;width:100%;background-color:rgb(255,235,255);">
+        <div class="middle_fixed middleSizeController_fixed" aura:id="middleSizeController"
+            data-id="middleSizeController">
+            <span role="button" aura:id="middleSlider" data-id="middleSlider" class="slds-badge" aria-hidden="true"
+                onclick="{!c.handleSizeLabel}"><a aura:id="middleSliderText" href="javascript:void(0)"
+                    style="text-decoration: none;font-size: var(--lwc-varFontSize3) !important;font:var(--lwc-cardFontWeight) !important;color:#FFFFFF;"
+                    title="クリックすると、サイズバーが最小化になる。">{!v.isMiddleLabelOpen}</a>
+            </span>
+        </div>
+        <lightning:layout multipleRows="true">
+            <lightning:layoutItem size="12" class="slds-m-bottom_small">
+                <div aura:id="topDiv">
+                    {!v.top}
+                </div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12">
+                <lightning:layout multipleRows="true">
+                    <lightning:layoutItem size="12">
+                        <div aura:id="middleDiv" data-id="middleDiv">
+                            {!v.middle}
+                        </div>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="12">
+                        <div aura:id="pathDiv" style="min-height:var(--lwc-varSpacingHorizontalSmall);">
+                            {!v.middle_Path}
+                        </div>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="12">
+                        <lightning:layout>
+                            <lightning:layoutItem size="{!$Browser.isDesktop ? '8' : '12'}" flexibility="auto,no-grow"
+                                class="slds-m-right_small">
+                                <div aura:id="bottom_left" class="bottom_left">
+                                    {!v.bottom_left}
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="{!$Browser.isDesktop ? '4' : '12'}">
+                                <div aura:id="bottom_right" class="bottom_right slds-m-right_small">
+                                    {!v.bottom_right}
+                                </div>
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </lightning:layoutItem>
+        </lightning:layout>
+    </div>
+</aura:component>

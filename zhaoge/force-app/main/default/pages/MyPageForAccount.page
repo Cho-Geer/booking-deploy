@@ -1,0 +1,10 @@
+<apex:page controller="MyController">
+    <apex:pageBlock >
+    <apex:form >
+        <apex:messages />
+        <apex:inputText value="{! account.Name}"></apex:inputText>
+        <apex:inputText value="{! account.aa__c}"></apex:inputText>
+        <apex:commandButton value="save" action="{! save}"></apex:commandButton>
+    </apex:form>
+    </apex:pageBlock>
+</apex:page>

@@ -1,0 +1,7 @@
+<aura:component>
+    <aura:handler name="compEvent" event="c:Fw_auraCompEvent" action="{!c.myAction}"></aura:handler>
+
+    <aura:attribute name="textBody" type="string"></aura:attribute>
+
+    <ui:outputText value="{!v.textBody}"></ui:outputText>
+</aura:component>

@@ -1,0 +1,99 @@
+<template>
+        <div class="slds-backdrop fadein slds-backdrop--open"></div>
+        <section class="slds-modal slds-fade-in-open slds-modal_large" tabindex="-1">
+            <div class="slds-modal__container">
+                <div class="slds-modal__header slds-p-around_medium">
+                    <h1 class="slds-page-header__title">取引先名</h1>
+                </div>
+                <div class="slds-modal__content slds-scrollable_none slds-p-around_small">
+                    <div class="slds-scrollable_none slds-is-relative">
+                        <div class="slds-grid slds-p-left_small">
+                            <div class="slds-col slds-size_4-of-12">
+                                <div class="slds-form-element">
+                                    <span class="slds-form-element__label">取引先名</span>
+                                    <div
+                                        class="slds-from-element__control slds-input-has-icon slds-input-has-icon_right">
+                                        <lightning-input type="text" variant="label-hidden" value={searchText} onkeyup={handleSearchText}>
+                                        </lightning-input>
+                                        <lightning-icon class="slds-input__icon slds-input__icon-right"
+                                            icon-name="utility:search" size="xx-small"></lightning-icon>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="slds-is-relative" style="height:100%;">
+                            <div class="slds-grid" style="flex-direction:column;">
+                                <div class="slds-page-header slds-is-relative">
+                                    <div class="slds-page-header__row">
+                                        <div class="slds-page-header__col-title">
+                                            <div class="slds-page-header__name-title">
+                                                <h2><span class="slds-page-header__title">取引先</span></h2>
+                                            </div>
+                                            <p class="slds-page-header__name-meta"><mark>{searchCount}</mark> 件の結果</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="slds-is-relative" style="padding-top:1.5rem;overflow:hidden;height:calc(100vh - 360px);width:100%;">
+                                    <div class="slds-is-static slds-scrollable_y" style="height: 100%;">
+                                        <!-- <table
+                                            class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_striped">
+                                            <thead>
+                                                <tr class="slds-line-height_reset">
+                                                    <th>
+                                                        <div class="slds-truncate">No.</div>
+                                                    </th>
+                                                    <th>
+                                                        <div class="slds-truncate">取引先名</div>
+                                                    </th>
+                                                    <th>
+                                                        <div class="slds-truncate">取引先 部門</div>
+                                                    </th>
+                                                    <th>
+                                                        <div class="slds-truncate">電話</div>
+                                                    </th>
+                                                    <th>
+                                                        <div class="slds-truncate">取引先 所有者名(別名)</div>
+                                                    </th>
+                                                    <th></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <template for:each={searchAccounts} for:item="acc" for:index="index">
+                                                    <tr key={acc.id} class="slds-hint-parent">
+                                                        <td><div class="slds-truncate">{acc.index}</div></td>
+                                                        <td>
+                                                            <div class="slds-truncate">
+                                                                <a href="javascript:void(0)" data-value={acc.id} onclick={handleAccountLink}>{acc.Name}</a>
+                                                            </div>
+                                                        </td>
+                                                        <td><div class="slds-truncate">{acc.Site}</div></td>
+                                                        <td><div class="slds-truncate">{acc.Phone}</div></td>
+                                                        <td><div class="slds-truncate">{acc.Owner}</div></td>
+                                                        <td>
+                                                            <lightning-button-menu data-id={acc.id} data-name={acc.Name} onselect={handleButtonItemSelect}>
+                                                                <lightning-menu-item value="modify" label="編集"></lightning-menu-item>
+                                                                <lightning-menu-item value="delete" label="削除"></lightning-menu-item>
+                                                                <lightning-menu-item value="copy" label="コピー"></lightning-menu-item>
+                                                            </lightning-button-menu>
+                                                        </td>
+                                                    </tr>
+                                                </template>
+</tbody>
+</table> -->
+<!-- dataTable -->
+<lightning-datatable key-field="id" data={searchAccounts} enable-infinite-loading load-more-offset="20" onloadmore={handleLoadMore} columns={columns} show-row-number-column row-number-offset={rowOffset} hide-checkbox-column onrowaction={handleRowAction}>
+</lightning-datatable>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="slds-modal__footer slds-p-around_small">
+    <lightning-button label="キャンセル" onclick={handleCancel} class="slds-m-right_small">
+    </lightning-button>
+</div>
+</div>
+</section>
+</template>

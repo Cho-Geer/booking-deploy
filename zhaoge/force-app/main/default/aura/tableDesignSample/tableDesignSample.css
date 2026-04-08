@@ -1,0 +1,10 @@
+.THIS table thead tr th {
+    position: static;
+}
+
+.THIS table thead tr th>div {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+}

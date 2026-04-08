@@ -1,0 +1,14 @@
+<design:component>
+    <flexipage:template>
+        <flexipage:region name="left" label="Left Region" defaultWidth="large">
+            <flexipage:formfactor type="medium" width="small" />
+        </flexipage:region>
+        <flexipage:region name="right" label="Right Region" defaultWidth="large">
+            <flexipage:formfactor type="medium" width="small" />
+        </flexipage:region>
+    </flexipage:template>
+    <design:supportedFormFactors>
+        <design:supportedFormFactor type="small"></design:supportedFormFactor>
+        <design:supportedFormFactor type="large"></design:supportedFormFactor>
+    </design:supportedFormFactors>
+</design:component>

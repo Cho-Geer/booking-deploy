@@ -1,0 +1,36 @@
+<apex:page >
+    <apex:includeScript value="{! URLFOR($Resource.jQueryForVforce)}"></apex:includeScript>
+    <apex:includeScript value="{! URLFOR($Resource.jQueryMobileForVforce,'jquery.mobile-1.4.5.min.js')}"></apex:includeScript>
+    <script src="/soap/ajax/50.0/connection.js" type="text/javascript"></script>
+    <script type="text/javascript">
+    </script>
+
+        <apex:pageBlock title="取引先作成">
+                <apex:pageBlockSection title="取引先作成">
+                    <apex:form >
+                        <apex:outputLabel value="取引先名："></apex:outputLabel>
+                        <apex:inputText html-data-id="in"></apex:inputText>
+                    </apex:form>
+                    <div style="font-size:x-large;color:red;">
+                        <span style="font-weight:200;">作成取引先名：</span>
+                        <apex:outputText html-data-id="out" style="font-weight:bolder;"></apex:outputText>
+                    </div>
+                    <div tyle="font-size:x-large;color:red;">
+                    <span style="font-weight:200;">作成取引先責任者結果：</span>
+                    <apex:outputText html-data-id="out2" style="font-weight:bolder;"></apex:outputText>
+                    </div>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection title="取引先責任者リスト">
+                    <!-- <apex:dataTable html-data-id="dataTab" value="">
+                        <apex:column html-data-id="col1">
+                            <apex:facet name="head">First Name</apex:facet>
+                            <apex:outputText html-data-id="dataTabOut1"></apex:outputText>
+                        </apex:column>
+                        <apex:column html-data-id="col2">
+                            <apex:facet name="head">Last Name</apex:facet>
+                            <apex:outputText html-data-id="dataTabOut2"></apex:outputText>
+                        </apex:column>
+                    </apex:dataTable> -->
+                </apex:pageBlockSection>
+        </apex:pageBlock>
+</apex:page>

@@ -1,0 +1,163 @@
+<template>
+    <tr>
+        <td data-id="tdIndex">{_index}</td>
+        <td>
+            <div class="slds-truncate">
+                <lightning-input type="text" variant="label-hidden" required></lightning-input>
+            </div>
+        </td>
+        <td>
+            <div class="slds-form-element">
+                <div class="slds-form-element__control">
+                    <div class="slds-combobox_container">
+                        <div data-id="combobox" class="slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click"
+                            aria-expanded={expanded} aria-haspopup="listbox" role="combobox">
+                            <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right"
+                                role="none">
+                                <input data-id="comboboxInput1" type="text" class="slds-input slds-combobox__input"
+                                    id="combobox-id-2" aria-autocomplete="list" aria-controls="listbox-id-2"
+                                    autocomplete="off" role="textbox" placeholder="Search..." onfocus={handleFocused} onblur={handleBlur} oninput={handleInputed}/>
+                                <span
+                                    class="slds-icon_container slds-icon-utility-search slds-input__icon slds-input__icon_right">
+                                    <svg class="slds-icon slds-icon slds-icon_x-small slds-icon-text-default"
+                                        aria-hidden="true">
+                                        <use xlink:href="/assets/icons/utility-sprite/svg/symbols.svg#search"></use>
+                                    </svg>
+                                </span>
+                            </div>
+                            <div id="listbox-id-2" data-id="listbox1"
+                                class="slds-dropdown slds-dropdown_left slds-dropdown_fluid"
+                                role="listbox">
+                                <ul class="slds-listbox slds-listbox_vertical" role="presentation">
+                                    <li if:true={searchFlag} data-li="liFirst" class="slds-listbox__item">
+                                        <div class="slds-media slds-media_center slds-listbox__option slds-p-top_x-small slds-p-bottom_small slds-p-left_x-small">
+                                            <span class="slds-media__figure slds-listbox__option-icon">
+                                                <lightning-icon icon-name="utility:search" size="small"></lightning-icon>
+                                            </span>
+                                            <span class="slds-media__body">
+                                                {accSearchTxt}
+                                            </span>
+                                        </div>
+                                    </li>
+                                    <template for:each={accounts} for:item="account" for:index="index">
+                                        <c-contact-account key={account.accountId} account={account} search-text={accSearchTxt} mark-flag={markFlag}></c-contact-account>
+                                    </template>
+                                    <li data-li="liLast" class="slds-listbox__item" onmousedown={handleCreateAccount}>
+                                        <div class="slds-media slds-media_center slds-listbox__option slds-p-top_x-small slds-p-bottom_small slds-p-left_x-small">
+                                            <span class="slds-media__figure slds-listbox__option-icon">
+                                                <lightning-icon icon-name="utility:add" size="small"></lightning-icon>
+                                            </span>
+                                            <span class="slds-media__body">新規作成</span>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </td>
+        <td>
+            <div class="slds-form-element">
+                <div class="slds-form-element__control">
+                    <div class="slds-combobox_container">
+                        <div data-id="combobox1" class="slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click"
+                            aria-expanded={expanded1} aria-haspopup="listbox" role="combobox">
+                            <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right"
+                                role="none">
+                                <input data-id="recordTypeInput" type="text" class="slds-input slds-combobox__input"
+                                    id="combobox-id-1" aria-autocomplete="list" aria-controls="listbox-id-2"
+                                    autocomplete="off" role="textbox" placeholder="Search..." onfocus={handleFocused1} onblur={handleBlur1} oninput={handleInputed}/>
+                                <span
+                                    class="slds-icon_container slds-icon-utility-search slds-input__icon slds-input__icon_right">
+                                    <svg class="slds-icon slds-icon slds-icon_x-small slds-icon-text-default"
+                                        aria-hidden="true">
+                                        <use xlink:href="/assets/icons/utility-sprite/svg/symbols.svg#search"></use>
+                                    </svg>
+                                </span>
+                            </div>
+                            <div id="listbox-id-1"
+                                class="slds-dropdown slds-dropdown_left slds-dropdown_fluid"
+                                role="listbox">
+                                <ul class="slds-listbox slds-listbox_vertical" role="presentation">
+                                    <li role="presentation" class="slds-listbox__item">
+                                        <div id="option4"
+                                            class="slds-media slds-listbox__option slds-listbox__option_entity slds-listbox__option_has-meta"
+                                            role="option">
+                                            <span class="slds-media__figure slds-listbox__option-icon">
+                                                <span class="slds-icon_container slds-icon-standard-account">
+
+                                                </span>
+                                            </span>
+                                            <span class="slds-media__body">
+                                                <span
+                                                    class="slds-listbox__option-text slds-listbox__option-text_entity">Burlington
+                                                    Textiles Corp of America</span>
+                                                <span
+                                                    class="slds-listbox__option-meta slds-listbox__option-meta_entity">Account
+                                                    • Burlington, NC</span>
+                                            </span>
+                                        </div>
+                                    </li>
+                                    <li role="presentation" class="slds-listbox__item">
+                                        <div id="option5"
+                                            class="slds-media slds-listbox__option slds-listbox__option_entity slds-listbox__option_has-meta"
+                                            role="option">
+                                            <span class="slds-media__figure slds-listbox__option-icon">
+                                                <span class="slds-icon_container slds-icon-standard-account">
+                                                    <svg class="slds-icon slds-icon_small" aria-hidden="true">
+                                                        <use
+                                                            xlink:href="/assets/icons/standard-sprite/svg/symbols.svg#account">
+                                                        </use>
+                                                    </svg>
+                                                </span>
+                                            </span>
+                                            <span class="slds-media__body">
+                                                <span
+                                                    class="slds-listbox__option-text slds-listbox__option-text_entity">Dickenson
+                                                    plc</span>
+                                                <span
+                                                    class="slds-listbox__option-meta slds-listbox__option-meta_entity">Account
+                                                    • Lawrence, KS</span>
+                                            </span>
+                                        </div>
+                                    </li>
+                                    <li role="presentation" class="slds-listbox__item">
+                                        <div id="option6"
+                                            class="slds-media slds-listbox__option slds-listbox__option_entity slds-listbox__option_has-meta"
+                                            role="option">
+                                            <span class="slds-media__figure slds-listbox__option-icon">
+                                                <span class="slds-icon_container slds-icon-standard-account">
+                                                </span>
+                                            </span>
+                                            <span class="slds-media__body">
+                                                <span
+                                                    class="slds-listbox__option-text slds-listbox__option-text_entity">Edge
+                                                    Communications</span>
+                                                <span
+                                                    class="slds-listbox__option-meta slds-listbox__option-meta_entity">Account
+                                                    • Austin, TX</span>
+                                            </span>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </td>
+        <td>
+            <lightning-button-group>
+                <lightning-button-icon class="slds-m-right_small" icon-name="utility:delete"></lightning-button-icon>
+                <lightning-button-icon icon-name="utility:add" variant="brand"></lightning-button-icon>
+            </lightning-button-group>
+        </td>
+    </tr>
+<template if:true={accountCreateFlag}>
+    <c-account-create-l-w-c close-flag={accountCreateFlag} create-flag={accountCreate2Flag} onmodalclosed={handleModalClosed} onmodalcreate={handleCreateModal}></c-account-create-l-w-c>
+</template>
+<template if:true={accountCreate2Flag}>
+    <c-account-record-create-lwc create-flag={accountCreate2Flag} record-type-id={accountRecordTypeId} onmodelclosed={handleCreateModelClosed}></c-account-record-create-lwc>
+</template>
+</template>

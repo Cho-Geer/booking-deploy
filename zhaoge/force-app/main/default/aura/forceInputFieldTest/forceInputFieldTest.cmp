@@ -1,0 +1,40 @@
+<aura:component implements="flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId">
+    <aura:handler name="init" value="{!this}" action="{!c.handleInit}"></aura:handler>
+    <aura:attribute name="contact" type="Contact" default="{'sobjectType':'Contact'}"></aura:attribute>
+    <aura:attribute name="fields" type="List" default="LastName,AccountId,RecordTypeId"></aura:attribute>
+    <aura:attribute name="simpleRecord" type="Contact"></aura:attribute>
+    <aura:attribute name="recordId" type="String"></aura:attribute>
+    <aura:attribute name="options" type="List"></aura:attribute>
+
+    <force:recordData aura:id="recordData" fields="{!v.fields}" targetFields="{!v.simpleRecord}" targetRecord="{!v.contact}" mode="EDIT" recordUpdated="{!c.handleRecordUpdated}"></force:recordData>
+    <div class="slds-table">
+        <thead>
+            <tr>
+                <th>new AccountId: {!v.simpleRecord.AccountId}</th>
+                <th>new LastName: {!v.simpleRecord.LastName}</th>
+                <th>new RecordTypeId:</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <force:inputField aura:id="accountId" value="{!v.contact.AccountId}" change="{!c.handleInputFieldChanged}"></force:inputField>
+                </td>
+                <td>
+                    <force:inputField aura:id="lastName" value="{!v.contact.LastName}" change="{!c.handleInputFieldChanged}"></force:inputField>
+                </td>
+                <td>
+                    <lightning:combobox options="{!v.options}" onchange="{!c.handleCombobox}"></lightning:combobox>
+                </td>
+            </tr>
+        </tbody>
+    </div>
+    <div class="slds-box">
+        <lightning:button variant="brand" title="登録" value="登録" onclick="{!c.handleSave}">登録</lightning:button>
+    </div>
+    <lightning:card title="lookup">
+        <aura:set attribute="body">
+            <lightning:combobox options="{!v.options}" onchange="{!c.handleCombobox}"></lightning:combobox>
+        </aura:set>
+    </lightning:card>
+</aura:component>

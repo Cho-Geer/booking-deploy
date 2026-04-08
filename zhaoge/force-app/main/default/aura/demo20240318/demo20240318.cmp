@@ -1,0 +1,25 @@
+<aura:component implements="flexipage:availableForAllPageTypes,force:hasRecordId,c:demo20240325" access="global">
+    <aura:attribute name="param1" type="string" description="description" default="optionalDefault" />
+    <aura:attribute name="example" type="string" />
+    <aura:attribute name="auraInterface01" type="string" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <lightning:card title="Demo Aura Interface" footer="footer" aura:id="card">
+        <div class="card_body">
+            <lightning:layout>
+                <lightning:layoutItem padding="around-small" flexibility="auto">
+                    <h1>{!v.recordId}</h1>
+                </lightning:layoutItem>
+                <lightning:layoutItem padding="around-small" flexibility="auto">
+                    <h1>{!v.param1}</h1>
+                </lightning:layoutItem>
+                <lightning:layoutItem padding="around-small" flexibility="auto">
+                    <h1>{!v.example}</h1>
+                </lightning:layoutItem>
+                <lightning:layoutItem padding="around-small" flexibility="auto">
+                    <h1>{!v.auraInterface01}</h1>
+                </lightning:layoutItem>
+            </lightning:layout>
+        </div>
+    </lightning:card>
+</aura:component>

@@ -1,0 +1,42 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes">
+    <!-- <aura:handler name="textEvent" event="c:Fw_CompEvent" action="{!c.handleChange}"></aura:handler> -->
+    <aura:handler name="appEvent" event="c:Fw_AppEvent" action="{!c.handleAppEvent}"></aura:handler>
+    <aura:attribute name="text" type="Integer"></aura:attribute>
+    <aura:attribute name="appText" type="String"></aura:attribute>
+
+    <div class="slds-page-header">
+        <div class="slds-page-header__title">
+            COMPONENT EVENT
+        </div>
+        <div class="slds-page-header__body">
+            <lightning:formattedText value="{!v.text}" onchange="{!c.handleChange}"></lightning:formattedText>
+            <c:TextEvent text="{!v.text}" appText="{!v.appText}"></c:TextEvent>
+        </div>
+    </div>
+    <div class="slds-page-header">
+        <div class="slds-page-header__row">
+            <div class="slds-page-header__col">
+                <div class="slds-page-header__name">
+                    <div class="slds-page-header__name-title">
+                        <span class="slds-text-title_bold">APPLICATION EVENT</span>
+                    </div>
+                </div>
+                <div class="slds-page-header__name-meta">
+                    <div class="slds-box">
+                        <c:TextEvent02 appText="{!v.appText}"></c:TextEvent02>
+                    </div>
+                    <div class="slds-box">
+                        <lightning:formattedText value="{!v.appText}"></lightning:formattedText>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="slds-page-header__row">
+            <div class="slds-page-header__col-detail">
+                <div class="slds-box slds-box_large">
+                    <c:TextEvent text="{!v.text}" appText="{!v.appText}"></c:TextEvent>
+                </div>
+            </div>
+        </div>
+    </div>
+</aura:component>

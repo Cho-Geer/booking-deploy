@@ -1,0 +1,6 @@
+<aura:component implements="flexipage:availableForAllPageTypes">
+    <aura:attribute name="test" type="String"></aura:attribute>
+    <lightning:card title="Rerender Test" iconName="standard:custom1">
+        <lightning:input value="{!v.test}"></lightning:input>
+    </lightning:card>
+</aura:component>

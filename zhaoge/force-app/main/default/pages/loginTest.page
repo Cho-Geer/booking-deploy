@@ -1,0 +1,50 @@
+<!--
+  @description       : 
+  @author            : ChangeMeIn@UserSettingsUnder.SFDoc
+  @group             : 
+  @last modified on  : 05-08-2024
+  @last modified by  : ChangeMeIn@UserSettingsUnder.SFDoc
+-->
+<apex:page showHeader="false" applyHtmlTag="false" standardStylesheets="false" controller="LoginTestCtrl" cache="false" docType="5.0">
+  <html>
+    <body>
+      <!-- Begin Default Content REMOVE THIS -->
+<h1>Congratulations</h1>
+This is your new Page
+<apex:form id="loginForm">
+        <apex:pageBlock >
+        <apex:pageMessages />
+        <apex:pageBlockButtons >
+            <apex:commandButton value="s" onclick="callCtrl(); return false;"/>
+        </apex:pageBlockButtons>
+            <apex:inputText value="{!firstName}"/>
+            <apex:inputText value="{!lastName}"/>
+            <apex:inputText value="{!email}"/>
+        </apex:pageBlock>
+    </apex:form>
+<!-- End Default Content REMOVE THIS -->
+<script type="text/javascript">
+  function callCtrl() {  
+    var firstName = document.getElementById('{!$Component.loginForm.firstName}').value;
+    var lastName = document.getElementById('{!$Component.loginForm.lastName}').value;
+    var email = document.getElementById('{!$Component.loginForm.email}').value;
+    Visualforce.remoting.Manager.invokeAction(
+        '{!$RemoteAction.LoginTestCtrl.registerUser}',
+        firstName,lastName,email,
+        function(result, event){
+            if(event.status){
+                var account = result;
+                console.log('Response is : ' + JSON.stringify(account));
+                console.log('Account Name is : ' + account.Name);
+                console.log('Account Owner Name is : ' + account.Owner.Name);
+            } else {
+                alert(event.message);
+            }
+        },
+        {escape: true}
+    );
+  }
+</script>
+    </body>
+  </html>
+</apex:page>

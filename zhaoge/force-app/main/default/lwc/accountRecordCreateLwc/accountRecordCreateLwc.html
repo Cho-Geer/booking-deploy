@@ -1,0 +1,21 @@
+<template>
+    <section class="slds-modal slds-fade-in-open slds-modal__large">
+        <div class="slds-modal__container">
+            <div class="slds-modal__header">
+                <span class="slds-modal__title">新規取引先作成: {recordTypeId}</span>
+            </div>
+            <div class="slds-modal__content">
+                <lightning-record-edit-form object-api-name="Account">
+                    <lightning-messages>
+                    </lightning-messages>
+                    <lightning-input-field field-name="Name"></lightning-input-field>
+                    <div class="slds-m-top_medium">
+                        <lightning-button class="slds-m-top_small" label="Cancel" onclick={handleReset}></lightning-button>
+                        <lightning-button class="slds-m-top_small" type="submit" label="Save Record"></lightning-button>
+                    </div>
+                </lightning-record-edit-form>
+            </div>
+        </div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open"></div>
+</template>

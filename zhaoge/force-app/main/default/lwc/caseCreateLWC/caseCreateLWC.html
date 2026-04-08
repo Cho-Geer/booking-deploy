@@ -1,0 +1,76 @@
+<template>
+    <div class="slds-wrapper">
+        <div class="slds-grid">
+            <div class="slds-col slds-size_2-of-3">
+                <lightning-card class="slds-m-around_meduim" variant="Narrow" title="Create Case"
+                    icon-name="custom:custom2" slot="actions">
+                    <lightning-button-menu icon-name="utility:down" variant="border-filled" alternative-text="Show More"
+                        slot="actions">
+                        <lightning-menu-item label="createCase" value="createClick" onclick={handleCreate}>
+                        </lightning-menu-item>
+                        <lightning-menu-item label="createCancel" value="createCancel" onclick={handleCancel}>
+                        </lightning-menu-item>
+                    </lightning-button-menu>
+                    <div class="slds-p-around_medium">
+                        <lightning-input class="slds-m-bottom_small" label="Case Id" value={caseId} disabled="true">
+                        </lightning-input>
+                        <lightning-input class="slds-m-bottom_small" label="Case Name" value={caseName}
+                            onchange={handleNameChange}>
+                        </lightning-input>
+                        <lightning-combobox class="slds-m-bottom_small" label="Case Status" value={caseStatus}
+                            placeholder="選択してください" onchange={handleStatusChange} options={statusOptions}
+                            required="true">
+                        </lightning-combobox>
+                        <lightning-combobox class="slds-m-bottom_small" label="発生源" value={caseOrigin}
+                            placeholder="選択してください" options={caseOriginOptions} onchange={handleOriginChange}
+                            required="true">
+                        </lightning-combobox>
+                        <lightning-input class="slds-m-bottom_small" label="共通必須" value={caseCommon} required="true"
+                            onchange={handleCommonChange}>
+                        </lightning-input>
+                        <lightning-input class="slds-m-bottom_small" label="IN必須" value={caseIn} required="true"
+                            onchange={handleInChange}>
+                        </lightning-input>
+                        <lightning-input class="slds-m-bottom_small" label="Out必須" value={caseOut} required="true"
+                            onchange={handleOutChange}>
+                        </lightning-input>
+                        <lightning-button class="slds-m-bottom_small" label="Create Case" variant="brand"
+                            onclick={handleCreate}></lightning-button>
+                    </div>
+                </lightning-card>
+            </div>
+            <div class="slds-col slds-size_1-of-3">
+                <lightning-card title="Case" icon-name="custom:custom2">
+                    <div class="slds-p-around_medium">
+                        <table>
+                            <tbody>
+                                <tr class="slds-m-bottom_small">
+                                    <td>
+                                        <label>ID</label>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <lightning-formatted-text class="slds-m-around_small" value={caId}>
+                                        </lightning-formatted-text>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <label>件名</label>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <lightning-formatted-text class="slds-m-around_small" value={subject}>
+                                        </lightning-formatted-text>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </lightning-card>
+            </div>
+        </div>
+    </div>
+</template>

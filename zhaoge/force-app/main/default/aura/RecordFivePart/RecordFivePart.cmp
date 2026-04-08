@@ -1,0 +1,32 @@
+<aura:component implements="lightning:recordHomeTemplate">
+    <aura:attribute name="left_top" type="Aura.component[]"></aura:attribute>
+    <aura:attribute name="left_bottom_left" type="Aura.component[]"></aura:attribute>
+    <aura:attribute name="left_bottom_right" type="Aura.component[]"></aura:attribute>
+    <aura:attribute name="right" type="Aura.component[]"></aura:attribute>
+	
+    
+    <lightning:layout>
+        <lightning:layoutItem flexibility="grow" class="slds-m-right_small">
+            <lightning:layout multipleRows="true">
+                <lightning:layoutItem size="12" class="slds-m-bottom_small">
+                    {!v.left_top}
+                </lightning:layoutItem>
+                <lightning:layoutItem size="12">
+                    <div style="overflow-y: auto;height: 650px;">
+                    <lightning:layout>
+                        <lightning:layoutItem flexibility="grow" class="slds-m-right_small">
+                            {!v.left_bottom_left}
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="{!$Browser.isDesktop ? '4' : '12'}">
+                            {!v.left_bottom_right}
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                            </div>
+                </lightning:layoutItem>
+            </lightning:layout>
+        </lightning:layoutItem>
+        <lightning:layoutItem size="{!$Browser.isDesktop ? '4' : '12'}">
+            	{!v.right}
+        </lightning:layoutItem>
+    </lightning:layout>
+</aura:component>

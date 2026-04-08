@@ -1,0 +1,18 @@
+<template>
+    <lightning-card icon-name="custom:custom1" title="取引先">
+        <lightning-icon icon-name="utility:set" variant="brand" data-action-name="set" slot="action" onclick={handleSet}></lightning-icon>
+        <div class="slds-p-around_medium">
+            <lightning-record-form 
+                id="accountForm"
+                object-api-name={objectApiName}
+                record-id={recordId}
+                fields={fields}
+                onsubmit={handleSubmit}></lightning-record-form>
+        </div>
+        <div id="footer" slot="footer" style="height:100%;width:100%;background-color:aliceblue;">
+            <span class="slds-text-align_center">
+                {footerText}
+            </span>
+        </div>
+    </lightning-card>
+</template>

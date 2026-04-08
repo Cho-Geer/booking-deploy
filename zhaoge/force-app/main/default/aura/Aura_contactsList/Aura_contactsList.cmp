@@ -1,0 +1,12 @@
+<aura:component implements="flexipage:availableForAllPageTypes">
+    <div class="slds-wrapper slds-m-around_small">
+        <div class="slds-grid">
+            <div class="slds-col slds-size_5-of-12 divComp">
+                <c:Aura_contactListComp></c:Aura_contactListComp>
+            </div>
+            <div class="slds-col slds-size_7-of-12">
+                <c:Aura_contactListViewComp></c:Aura_contactListViewComp>
+            </div>
+        </div>
+    </div>
+</aura:component>

@@ -1,0 +1,15 @@
+<apex:page >
+<!-- Begin Default Content REMOVE THIS -->
+<apex:includeScript value="/support/console/51.0/integration.js"></apex:includeScript>
+    <apex:includeScript value="{! URLFOR($Resource.jQueryForVforce)}"></apex:includeScript>
+    <apex:includeScript value="{! URLFOR($Resource.jQueryMobileForVforce,'jquery.mobile-1.4.5.min.js')}"></apex:includeScript>
+<script type="text/javascript">
+    function wOpen(){
+        alert("download開始");
+        downloads.download({url:"file://D:Salesforce/技術履歴書_陶.xlsx"});
+        alert("download終わり");
+    }
+</script>
+<a data-id="ahref" href="#" onclick="wOpen()"><h1>Congratulations</h1></a>
+<!-- End Default Content REMOVE THIS -->
+</apex:page>

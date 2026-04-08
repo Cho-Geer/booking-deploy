@@ -1,0 +1,30 @@
+<aura:component controller="ContactDataController">
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"></aura:handler>
+    <aura:handler event="c:Fw_auraAppEvent" action="{!c.handleSearch}"></aura:handler>
+    <aura:attribute name="rerenderKey" type="String" default=""></aura:attribute>
+    <aura:attribute name="searchStr" type="String"></aura:attribute>
+    <aura:attribute name="data" type="Object"></aura:attribute>
+    <aura:attribute name="columns" type="List"></aura:attribute>
+    <aura:attribute name="rowData" type="Object" access="PRIVATE"></aura:attribute>
+    <aura:attribute name="searchData" type="Object" access="PRIVATE"></aura:attribute>
+    <aura:attribute name="activeFilter" type="String" access="PRIVATE"></aura:attribute>
+    <aura:attribute name="searchFlg" type="Boolean" default="false" access="PRIVATE"></aura:attribute>
+
+    <lightning:notificationsLibrary aura:id="notifyb"></lightning:notificationsLibrary>
+    <lightning:card class="slds-m-left_small" title="取引先責任者一覧" iconName="custom:custom3">
+        <aura:set attribute="footer">
+            <span>スクロールできる</span>
+        </aura:set>
+        <div class="slds-m-around_small slds-grid">
+            <div class="slds-col slds-size_2-of-3">
+                <lightning:input label="検索: " variant="label-hidden" value="{!v.searchStr}"></lightning:input>
+            </div>
+            <div class="slds-col slds-size_1-of-3">
+                <lightning:button variant="brand" iconName="utility:search" iconPosition="left" label="検索" title="検索" onclick="{! c.handleSearch }" />
+            </div>
+        </div>
+        <div class="slds-m-around_small" style="height: 480px;overflow-y:auto">
+            <lightning:datatable columns="{!v.columns}" data="{!v.data}" keyField="id" onrowaction="{!c.handleRowAction}" onheaderaction="{!c.handleHeaderAction}"></lightning:datatable>
+        </div>
+    </lightning:card>
+</aura:component>

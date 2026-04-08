@@ -1,0 +1,5 @@
+({
+    setHandleCompEvent: function(component, event) {
+
+    }
+})

@@ -1,0 +1,66 @@
+<aura:component>
+    <ltng:require scripts="{!$Resource.jQueryMobileForVforce + '/jquery.mobile-1.4.5.min.js'}"></ltng:require>
+    <aura:handler name="init" value="{!this}" action="{!c.handleInit}"></aura:handler>
+    <aura:attribute name="index" type="Integer"></aura:attribute>
+    <aura:attribute name="contact" type="Contact"></aura:attribute>
+    <aura:attribute name="checkFlag" type="Boolean"></aura:attribute>
+    <aura:attribute name="check" type="Boolean"></aura:attribute>
+    <aura:attribute name="options" type="List"></aura:attribute>
+    <aura:attribute name="spinnerFlag" type="Boolean" default="true"></aura:attribute>
+    <aura:attribute name="isSearching" type="Boolean" default="false"></aura:attribute>
+    <aura:handler name="change" value="{!v.check}" action="{!c.handleCheckRowByCheck}"></aura:handler>
+
+    <lightning:notificationsLibrary aura:id="notifLib" />
+    <c:EventService aura:id="eventService"></c:EventService>
+    <tr class="">
+        <td>
+            <div class="slds-truncate">
+                <lightning:input aura:id="checkbox" type="checkbox" value="" checked="false" onchange="{!c.handleCheckRow}"></lightning:input>
+            </div>
+        </td>
+        <td>
+            <div class="slds-truncate">
+                <lightning:input value="{!v.contact.LastName}" variant="label-hidden"></lightning:input>
+            </div>
+        </td>
+        <td>
+            <div class="slds-truncate">
+                <lightning:input value="{!v.contact.FirstName}" variant="label-hidden"></lightning:input>
+            </div>
+        </td>
+        <td>
+            <div onkeyup="{!c.handleKeyup}">
+                <lightning:input variant="label-hidden" type="search" isLoading="{!v.isSearching}" onmouseup="{!c.handleAccount}" onblur="{!c.handleAccount}">
+                </lightning:input>
+                <div data-id="accountList" aura:id="accountList" class="slds-box slds-hide">
+                    <div>
+                        <span class="slds-icon_container">
+                            <lightning:icon iconName="standard:contact" size="x-small"></lightning:icon>
+                            <span style="margin-left:0.4rem;">aaaaa</span>
+                        </span>
+                    </div>
+                    <div>
+                        <span class="slds-icon_container">
+                            <lightning:icon iconName="standard:contact" size="x-small"></lightning:icon>
+                            <span style="margin-left:0.4rem;">bbbbb</span>
+                        </span>
+                    </div>
+                    <div>
+                        <span class="slds-icon_container">
+                            <lightning:icon iconName="standard:contact" size="x-small"></lightning:icon>
+                            <span style="margin-left:0.4rem;">ccccc</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </td>
+        <td>
+            <lightning:combobox aura:id="recordType" variant="label-hidden" options="{!v.options}" value="{!v.contact.RecordTypeId}" required="true" spinnerActive="{!v.spinnerFlag}" onchange="{!c.handleCombobox}" onfocus="{!c.handleFocusCombobox}"></lightning:combobox>
+        </td>
+        <td>
+            <div class="slds-truncate">
+                <lightning:buttonIcon iconName="utility:delete" variant="border" alternativeText="delete" disabled="{!v.checkFlag}" onclick="{!c.handleDeleteRow}"></lightning:buttonIcon>
+            </div>
+        </td>
+    </tr>
+</aura:component>

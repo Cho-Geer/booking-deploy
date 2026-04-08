@@ -1,0 +1,74 @@
+<apex:page standardController="Contact" recordSetVar="cons" extensions="ContactsListWithController">
+    <apex:includeScript value="{! $Resource.jQueryForVforce}"></apex:includeScript>
+    <apex:includeScript value="{! URLFOR($Resource.jQueryMobileForVforce,'jquery.mobile-1.4.5.min.js')}"></apex:includeScript>
+
+    <apex:form id="form">
+        <apex:inputText value="{! text}"></apex:inputText>
+        <apex:commandButton value="実行" action="{! doOut}"></apex:commandButton>
+    </apex:form>
+    <apex:outputText value="{! outputText}"></apex:outputText>
+    <apex:form id="form2">
+        <apex:pageBlock title="Contacts List" id="contacts_list">
+            <apex:selectList value="{! str}" size="1" id="selectText">
+                <apex:selectOption itemValue="blue" itemLabel="blue"></apex:selectOption>
+                <apex:selectOption itemValue="red" itemLabel="red"></apex:selectOption>
+                <apex:selectOption itemValue="black" itemLabel="black"></apex:selectOption>
+                <apex:actionSupport event="onchange" reRender="ouputSelect">
+                </apex:actionSupport>
+            </apex:selectList>
+            <apex:outputPanel html-data-id="ouputSelect" layout="block" id="ouputSelect">
+            <apex:outputText value="{! str}"></apex:outputText>
+            </apex:outputPanel>
+            <apex:selectList value="{! strView}" size="1">
+                <apex:selectOptions value="{! strViews}"></apex:selectOptions>
+                <apex:actionSupport event="onchange" reRender="outputList"></apex:actionSupport>
+            </apex:selectList>
+            <apex:outputPanel layout="block" id="outputList">
+                <apex:outputText value="{! strView}"></apex:outputText>
+                <apex:inputCheckbox ></apex:inputCheckbox>
+            </apex:outputPanel>
+                        <apex:selectList value="{! filterId }" size="1">
+                            <apex:selectOptions value="{! listViewOptions }" />
+                            <apex:actionSupport event="onchange" reRender="contacts_list" />
+                        </apex:selectList>
+            <apex:pageBlockSection columns="1">
+                <apex:pageBlockTable value="{! cons}" var="con">
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:commandLink action="{! sortByLastName}">
+                                {! $ObjectType.Contact.Fields.LastName.Label}
+                            </apex:commandLink>
+                        </apex:facet>
+                        <apex:outputField value="{! con.LastName}"></apex:outputField>
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:commandLink action="{! sortByFirstName}" reRender="contacts_list">
+                                {! $ObjectType.Contact.Fields.FirstName.Label}
+                            </apex:commandLink>
+                        </apex:facet>
+                        <apex:outputField value="{! con.FirstName}"></apex:outputField>
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:commandLink >{! $ObjectType.Contact.Fields.Phone.Label}</apex:commandLink>
+                        </apex:facet>
+                        <apex:outputField value="{! con.Phone}"></apex:outputField>
+                    </apex:column>
+                </apex:pageBlockTable>
+            </apex:pageBlockSection>
+            <apex:outputText value="{! PageNumber} of {! CEILING(ResultSize / PageSize)}"></apex:outputText>
+            <apex:commandLink action="{! Previous}" value="« Previous" rendered="{! HasPrevious}">                
+            </apex:commandLink>
+            <apex:outputText style="color: #ccc;" value="« Previous" rendered="{! Not(HasPrevious)}"></apex:outputText>
+             &nbsp;&nbsp;
+             <apex:commandLink action="{! next}" value="Next »" rendered="{! HasNext}"></apex:commandLink>
+             <apex:outputText style="color: #ccc;" value="Next »" rendered="{! Not(HasNext)}"></apex:outputText>
+             <apex:selectList value="{! PageSize}" size="1">
+                 <apex:selectOption itemValue="5" itemLabel="5"></apex:selectOption>
+                 <apex:selectOption itemValue="20" itemLabel="20"></apex:selectOption>
+                 <apex:actionSupport event="onchange" reRender="contacts_list"></apex:actionSupport>
+             </apex:selectList>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

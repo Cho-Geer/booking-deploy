@@ -1,0 +1,52 @@
+<apex:page standardController="Account" showHeader="false" sidebar="false" standardStylesheets="false" lightningStylesheets="true"
+    applyHtmlTag="false" applyBodyTag="false" docType="html-5.0">
+    <!-- <apex:liveController reRender="outputPanel"/> -->
+    <apex:slds />
+    <html>
+
+    <head></head>
+
+    <body class="slds-scope">
+        <apex:outputPanel id="outputPanel">
+        <div class="slds-page-header">
+            <div class="slds-page-header__title">
+                <span>title {!account.Name}</span>
+            </div>
+            <div class="slds-page-header__body">
+                <div class="slds-grid">
+                    <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+                        <thead>
+                            <tr class="slds-line-height_reset">
+                                <th scope="col">
+                                    <div class="slds-truncate">{!$ObjectType.Account.fields.Id.Label}</div>
+                                </th>
+                                <th scope="col">
+                                    <div class="slds-truncate">{!$ObjectType.Account.fields.Name.Label}</div>
+                                </th>
+                                <th scope="col">
+                                    <div class="slds-truncate">{!$ObjectType.Account.fields.Phone.Label}</div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="slds-hint-parent">
+                                <td>
+                                    <div class="slds-truncate">{!account.Id}</div>
+                                </td>
+                                <td>
+                                    <div class="slds-truncate">{!account.Name}</div>
+                                </td>
+                                <td>
+                                    <div class="slds-truncate">{!account.Phone}</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        </apex:outputPanel>
+    </body>
+
+    </html>
+</apex:page>

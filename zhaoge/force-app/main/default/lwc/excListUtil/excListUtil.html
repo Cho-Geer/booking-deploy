@@ -1,0 +1,32 @@
+<template>
+    <div class="slds-media slds-media_center slds-has-flexi-truncate slds-m-around_small">
+        <div class="slds-media__figure">
+            <lightning-combobox
+                label="PageNumber"
+                value={value}
+                variant="label-stacked"
+                placeholder="5"
+                options={options}
+                onchange={handlePageNumber} >
+            </lightning-combobox>
+        </div>
+        <div class="slds-no-flex">
+            <div class="slds-grid slds-wrap slds-m-top_small">
+                <lightning-button data-id="previous" variant="brand" label="前へ" disabled="true" value="前へ" onclick={gotoPrevious}></lightning-button>
+                <template for:each={count} for:item="countItem" for:index="index">
+                    <div key={countItem} class="slds-p-left_small" style="font-size:large;font:bolder;color:black !important;font-weight:900;">
+                        <template if:false={countItem.linkFlag}>
+                            <a class='link' href='javascript:void(0)' tabindex="0" onclick={doClick}>
+                                {countItem.item}
+                            </a>
+                        </template>
+                        <template if:true={countItem.linkFlag}>
+                            {countItem.item}
+                        </template>
+                    </div>
+                </template>
+                <lightning-button data-id="next" class="slds-m-left_small" variant="brand" label="次へ" value="次へ" onclick={gotoNext}></lightning-button>
+            </div>
+        </div>
+    </div>
+</template>

@@ -1,0 +1,15 @@
+<aura:component implements="force:lightningQuickActionWithoutHeader,force:hasRecordId">
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"></aura:handler>
+    <aura:attribute name="recordId" type="String"></aura:attribute>
+    <aura:attribute name="quickText" type="Boolean"></aura:attribute>
+    <lightning:recordEditForm aura:id="form" recordId="{!recordId}" objectApiName="Case">
+        <lightning:messages/>
+        <lightning:inputField fieldName="AccountId"></lightning:inputField>
+        <lightning:inputField fieldName="Subject"></lightning:inputField>
+        <lightning:inputField fieldName="Status"></lightning:inputField>
+        <lightning:button class="slds-m-top_small" variant="brand" type="submit" name="update" label="Update"></lightning:button>
+    </lightning:recordEditForm>
+    <div class="slds-header">
+        <ui:outputText value="{!'クイックテキスト： ' + v.quickText}"></ui:outputText>
+    </div>
+</aura:component>

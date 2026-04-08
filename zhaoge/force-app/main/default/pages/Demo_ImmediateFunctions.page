@@ -1,0 +1,22 @@
+<apex:page >
+<!-- Begin Default Content REMOVE THIS -->
+<script>
+  (function() {
+    alert('Visualforceタブにある即時関数 start');
+    document.addEventListener('DOMContentLoaded', () => {
+      const a = document.querySelector('.button01');
+      if(a){
+        a.addEventListener('click', function(){
+            console.log('llllll');
+            alert('h1タグにEventListenerを追加した');
+        });  
+      }
+    })
+  })();
+</script>
+<h1>即時関数</h1>
+<button class="button01">OK</button>
+This is your new Page
+<!-- End Default Content REMOVE THIS -->
+
+</apex:page>

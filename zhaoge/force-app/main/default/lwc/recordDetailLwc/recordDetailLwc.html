@@ -1,0 +1,19 @@
+<template>
+    <div class="slds-backdrop fadein slds-backdrop--open"></div>
+    <section class="slds-modal slds-fade-in-open slds-modal_medium">
+        <div class="slds-modal__container">
+            <div class="slds-modal__content slds-p-around_small">
+                <div style="position:relative;">
+                    <div style="width:100%;height:50px;display:flex;align-items:center;border-bottom:1px solid black;">
+                        <div class="slds-grow" style="text-align:center">
+                            <h1 style="font:large;">{recordName}を編集</h1>
+                        </div>
+                    </div>
+                    <lightning-record-form record-id={recordId} object-api-name="Account" layout-type="Full" columns="2"
+                        mode="edit" onsubmit={handleSubmit} oncancel={handleCancel}>
+                    </lightning-record-form>
+                </div>
+            </div>
+        </div>
+    </section>
+</template>

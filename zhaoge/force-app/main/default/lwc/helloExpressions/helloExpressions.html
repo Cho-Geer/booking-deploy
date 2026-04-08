@@ -1,0 +1,73 @@
+<template>
+    <lightning-card title="Hello Expressions" icon-name="custom:custom1">
+        <div class="slds-wrapper">
+            <ul class="slds-m-around_medium" style="height: 1em;">
+                <li style="display:inline-block;">
+                    <div class="slds-text-heading_small">展開済み：</div>
+                </li>
+                <template iterator:item={customOpenSections}>
+                    <li key={item.value} style="display:inline-block;padding:2px;">
+                        <a href={link}>
+                            <div class="slds-media">
+                            <div class="slds-media__figure">
+                                <svg aria-hidden="true" class="slds-icon slds-icon--x-small slds-icon-text-default">
+                                    <use xlink:href={svgURL}></use>
+                                </svg>
+                            </div>
+                            <div class="slds-media__body">
+                                <span class="slds-text-heading--small slds-truncate">{item.value}</span>
+                            </div>
+                        </div>
+                        </a>
+                    </li>
+                </template>
+</ul>
+<lightning-accordion allow-multiple-sections-open onsectiontoggle={handleSectiontoggle} active-section-name={customOpenSections}>
+    <lightning-accordion-section data-id="link0" name="A" label="Section Title A">
+        <lightning-button-menu label="文字転換" onselect={handleSelectA} slot="actions">
+            <lightning-menu-item label="Uppercase" value="uppercase"></lightning-menu-item>
+            <lightning-menu-item label="Lowercase" value="lowercase"></lightning-menu-item>
+        </lightning-button-menu>
+        <lightning-layout multiple-rows="true">
+            <lightning-layout-item padding="around-small" size="12">
+                <div class="slds-text-heading_small">Name Changed： {outputNameA}</div>
+            </lightning-layout-item>
+            <lightning-layout-item size="12">
+                <lightning-layout>
+                    <lightning-layout-item padding="around-small">
+                        <lightning-input class="slds-m-left" label="First Name" value={firstNameA} onchange={handleFrtA} placeholder="John"></lightning-input>
+                    </lightning-layout-item>
+                    <lightning-layout-item padding="around-small">
+                        <lightning-input class="slds-m-left" label="Last Name" value={lastNameA} onchange={handleLstA} placeholder="Dav"></lightning-input>
+                    </lightning-layout-item>
+                </lightning-layout>
+            </lightning-layout-item>
+        </lightning-layout>
+    </lightning-accordion-section>
+    <lightning-accordion-section data-id="link1" name="B" label="Section Title B">
+        <lightning-button-menu label="文字転換" onselect={handleSelectB} slot="actions">
+            <lightning-menu-item label="Uppercase" value="uppercase"></lightning-menu-item>
+            <lightning-menu-item label="Lowercase" value="lowercase"></lightning-menu-item>
+        </lightning-button-menu>
+        <lightning-layout multiple-rows="true">
+            <lightning-layout-item size="12">
+                <div class="slds-text-heading_small">Name Changed：{outputNameB}</div>
+            </lightning-layout-item>
+            <lightning-layout-item size="12">
+                <lightning-layout>
+                    <lightning-layout-item padding="around-small">
+                        <lightning-input label="First Name" value={firstNameB} onchange={handleFrtNB} placeholder="Josn">
+                        </lightning-input>
+                    </lightning-layout-item>
+                    <lightning-layout-item padding="around-small">
+                        <lightning-input label="Last Name" value={lastNameB} onchange={handleLstNB} placeholder="Head">
+                        </lightning-input>
+                    </lightning-layout-item>
+                </lightning-layout>
+            </lightning-layout-item>
+        </lightning-layout>
+    </lightning-accordion-section>
+</lightning-accordion>
+</div>
+</lightning-card>
+</template>

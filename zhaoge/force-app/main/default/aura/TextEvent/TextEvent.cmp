@@ -1,0 +1,9 @@
+<aura:component>
+    <!-- <aura:registerEvent name="textEvent" type="c:Fw_CompEvent"></aura:registerEvent> -->
+    <aura:attribute name="text" type="Integer"></aura:attribute>
+    <aura:attribute name="appText" type="String"></aura:attribute>
+    <aura:registerEvent name="appEvent" type="c:Fw_AppEvent"></aura:registerEvent>
+
+    <!-- <lightning:input label="COMPONENT EVENT" value="{!v.text}" onchange="{!c.handleChange}"></lightning:input> -->
+    <lightning:input label="APPLICATION EVENT" value="{!v.appText}" onchange="{!c.handleAppEvent}"></lightning:input>
+</aura:component>

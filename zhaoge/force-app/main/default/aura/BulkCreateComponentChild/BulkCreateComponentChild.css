@@ -1,0 +1,37 @@
+.THIS [class~=comboBox] {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.THIS [data-id=accountList] {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    left: inherit;
+    box-sizing: border-box;
+    width: 100%;
+    margin-top: 0.5rem;
+    padding: 0;
+    background-color: antiquewhite;
+    z-index: 10000;
+}
+
+.THIS [data-id=accountList] div:hover {
+    background-color: aliceblue;
+}
+
+.THIS [data-id=accountList] div {
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    padding-left: 0.5rem;
+}
+
+.THIS [data-id=accountList] div span {
+    box-sizing: border-box;
+    display: inline-block;
+    width: inherit;
+    margin-top: 0.3rem;
+    margin-bottom: 0.3rem;
+}

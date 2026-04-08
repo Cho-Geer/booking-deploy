@@ -1,0 +1,30 @@
+<aura:component
+  implements="flexipage:availableForRecordHome,force:hasRecordId"
+  access="global"
+>
+  <lightning:card title="Create Contact">
+    <div class="slds-m-horizontal_small">
+      <lightning:recordEditForm
+        aura:id="myForm"
+        objectApiName="Contact"
+        onload="{!c.loadContact}"
+        onsuccess="{!c.handleSuccess}"
+      >
+        <lightning:inputField aura:id="lastName" fieldName="LastName" />
+        <lightning:inputField aura:id="firstName" fieldName="FirstName" />
+        <lightning:inputField
+          aura:id="accountId"
+          fieldName="AccountId"
+          disabled="true"
+          hidden="true"
+        />
+        <lightning:button
+          class="slds-m-top_small"
+          variant="brand"
+          type="submit"
+          label="保存"
+        />
+      </lightning:recordEditForm>
+    </div>
+  </lightning:card>
+</aura:component>

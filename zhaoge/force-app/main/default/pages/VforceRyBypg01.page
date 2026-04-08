@@ -1,0 +1,57 @@
+<apex:page >
+    <apex:stylesheet value="{! URLFOR($Resource.jQueryMobileForVforce,'jquery.mobile-1.4.5.min.css')}"></apex:stylesheet>
+    <apex:includeScript value="{! URLFOR($Resource.jQueryMobileForVforce,'jquery.mobile-1.4.5.min.js')}"></apex:includeScript>
+    <apex:includeScript value="{! URLFOR($Resource.jQueryForVforce)}"></apex:includeScript>
+    <script src="/soap/ajax/49.0/connection.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            sforce.connection.sessionId = "{! $Api.Session_ID}";
+            var value = "";
+            $("[data-id=in]").on("change", function () {
+                value = this.value;
+                var account = new sforce.SObject("Account");
+                account.Name = value;
+                sforce.connection.create([account], {
+                    onSuccess: success,
+                    onFailure: failed
+                });
+            });
+            function success(result) {
+                if (result[0].getBoolean("success") && result[0].id !== undefined) {
+                    alert(result[0].id + '---' + value);
+                   var results = sforce.connection.query("select Name from Account where Account.Name = '" + value + "'", {
+                        onSuccess: querySuccess,
+                        onFailure: queryFailed
+                    });
+                };
+            };
+            function failed(error) {
+                $("[data-id=out]").text("接続に失敗した原因：" + error);
+            };
+            function querySuccess(result) {
+                alert(result);
+                if (result.getArray("records").length > 0) {
+                    alert("start :");
+                    var records = new sforce.QueryResultIterator(result);
+                    var name = "";
+                    while (records.hasNext()) {
+                        var record = records.next();
+                        name = record.Name;
+                        $("[data-id=out]").text(name);
+                    }
+                } else {
+                    $("[data-id=out]").text("アカウントの作成に失敗した恐れがある");
+                }
+            };
+            function queryFailed(error) {
+                alert("アカウントの作成に失敗した原因：" + error);
+                $("[data-id=out]").text("アカウントの作成に失敗した原因：" + error);
+            };
+        });
+    </script>
+    <apex:form >
+        <apex:outputLabel value="取引先名"></apex:outputLabel>
+        <apex:inputText html-data-id="in" html-placeholder="入力してください" />
+    </apex:form>
+    <apex:outputText html-data-id="out" style="font-size:larger;color:red"></apex:outputText>
+</apex:page>

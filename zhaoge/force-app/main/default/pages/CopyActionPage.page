@@ -1,0 +1,87 @@
+<apex:page standardController="Aobject__c">
+    <script type="text/javascript">
+        // セクションタイトルを格納するの配列
+        var secArray = new Array();
+
+        // コピー用文字列
+        var copyStr = "";
+        // セクション数
+        var secCount = 0;
+
+        //CCTプロジェクトのChrome対応
+        var isIE = false; //IE使用有無判断
+        var userAgent = window.navigator.userAgent.toLowerCase();
+        if (userAgent.match(/(msie|MSIE)/) || userAgent.match(/(T|t)rident/)) {
+            isIE = true;
+        }
+
+        // セクションのラベルを取得(h3)
+        // レイアウトに依存、先頭セクションはレコードタイプと依頼項目のみ、タイトルなし。
+        // それ以外の取得すべき項目は全てなんらかのタイトルのセクション内に存在。
+        for (var i = 0; i < document.getElementsByTagName("h3").length; i++) {
+            var elm = document.getElementsByTagName("h3")[i];
+            var childValue = elm.firstChild.nodeValue;
+            if (childValue != null) {
+                secArray.push(childValue);
+            } else {
+                var child = elm.firstChild;
+                childValue = child.firstChild.nodeValue;
+                secArray.push(childValue);
+            }
+        }
+        alert(secArray);
+        for (var i = 0; i < document.getElementsByTagName("table").length; i++) {
+            // detailListのタグ。
+            var element = document.getElementsByTagName("table")[i];
+            var clsName = element.className;
+            if (clsName == null || clsName.length == 0 || clsName != "detailList") {
+                continue;
+            }
+
+            var list = "";
+            for (var j = 0; j < element.rows.length; j++) {
+                var check = element.rows[j].cells[0].innerText;
+                if (check == "レコードタイプ") {
+                    continue;
+                }
+
+                for (var k = 0; k < element.rows[j].cells.length; k++) {
+                    var objb2Td = element.rows[j].cells[k];
+                    var valb2Td = objb2Td.innerText;
+
+                    valb2Td = valb2Td.trim(); //Modify by P180003E - Contact Center Transformation
+                    //valb2Td = valb2Td.replace(" ", "");
+                    if (valb2Td.length > 0) {
+                        list += valb2Td;
+                    }
+
+                }
+                list += "\n";
+            }
+            if (list.length > 0) {
+                copyStr += secArray[secCount] + "\n";
+                secCount++;
+                copyStr += list;
+            }
+        }
+        //console.log("★★copyStr確認：\n"+ copyStr);
+
+        //Add by tao.a.sun 2014/04/14 Win7-IE9不具合調査対応 start
+        copyStr = copyStr.replace(/sfdcPage\..*?\(('.*?')+,.*?('.*?')+\);/g, "");
+        //Add by tao.a.sun 2014/04/14 Win7-IE9不具合調査対応 end
+
+        if (isIE) {
+            window.clipboardData.setData("Text", copyStr); // IE
+            alert("コピーしました");
+        } else {
+            var ta = document.createElement("textarea")
+            ta.value = copyStr;
+            document.body.appendChild(ta)
+            ta.select()
+            document.execCommand("copy")
+            ta.parentElement.removeChild(ta)
+
+            alert("コピーしました");
+        }
+    </script>
+</apex:page>

@@ -1,0 +1,21 @@
+<aura:component>
+    <aura:attribute name="str" type="String"></aura:attribute>
+    <aura:registerEvent name="fireCompEvent" type="c:Fw_CompEvent"></aura:registerEvent>
+    <aura:registerEvent name="fireAppEvent" type="c:Fw_AppEvent"></aura:registerEvent>
+
+    <aura:method name="compEvent" action="{!c.handleStr}">
+        <aura:attribute name="eventKey" type="String"></aura:attribute>
+        <aura:attribute name="eventValue" type="Object"></aura:attribute>
+    </aura:method>
+
+    <aura:method name="appEvent" action="{!c.handleAppEvent}">
+        <aura:attribute name="it" type="String"></aura:attribute>
+    </aura:method>
+
+    <aura:method name="serverAction" action="{!c.handleServerAction}">
+        <aura:attribute name="comp" type="Aura.Component"></aura:attribute>
+        <aura:attribute name="actionName" type="String"></aura:attribute>
+        <aura:attribute name="actionParams" type="Object"></aura:attribute>
+        <aura:attribute name="callback" type="Function"></aura:attribute>
+    </aura:method>
+</aura:component>

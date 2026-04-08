@@ -1,0 +1,29 @@
+<apex:page controller="AccountSearchController" showHeader="true" standardStylesheets="true" applyBodyTag="false" docType="html-5.0">
+    <apex:form >
+        <apex:outputpanel id="resultPanel">
+        <apex:commandButton value="戻る" action="{!doPrevious}"></apex:commandButton>
+        <apex:pageBlock title="検索結果一覧" rendered="{!antLst.size == 0}">条件と一致するデータは見つかりませんでした。</apex:pageBlock>
+        <apex:pageBlock title="検索結果一覧" rendered="{!antLst.size > 0}">
+            <apex:outputText value="結果：{!antLst.size}件"></apex:outputText>
+            <apex:pageBlockTable value="{!antLst}" var="item">
+                <apex:column >
+                    <apex:facet name="header">名前</apex:facet>
+                    <apex:outputField value="{!item.Name}"></apex:outputField>
+                </apex:column>
+                <!-- <apex:column>
+                    <apex:pageBlockTable value="{!item.Contact}" var="it">
+                        <apex:column>
+                            <apex:facet name="header">取引先責任者名</apex:facet>
+                            <apex:outputField value="{!it.Name}"></apex:outputField>
+                        </apex:column>
+                    </apex:pageBlockTable>
+                </apex:column> -->
+                <apex:column >
+                    <apex:facet name="header">携帯</apex:facet>
+                    <apex:outputField value="{!item.Phone}"></apex:outputField>
+                </apex:column>
+            </apex:pageBlockTable>
+        </apex:pageBlock>
+        </apex:outputpanel>
+    </apex:form>
+</apex:page>

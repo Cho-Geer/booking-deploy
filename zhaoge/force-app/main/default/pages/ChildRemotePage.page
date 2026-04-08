@@ -1,0 +1,56 @@
+<apex:page controller="ChildRemoteController" showHeader="true" sidebar="true">
+<script type="text/javascript">
+    function sayhello(helloTo){
+        Visualforce.remoting.Manager.invokeAction(
+            "{! $RemoteAction.ChildRemoteController.sayHello}",
+            helloTo,
+            sayhi,
+            {escape:true}
+        );
+
+        function sayhi(result,event){
+            if(event.status){
+                document.getElementById("result").innerHTML = result;
+            }else if(event.type === "exception"){
+                document.getElementById("result").innerHTML = event.message + "<br/>\n<pre>" + event.where + "</pre>";
+            }else{
+                document.getElementById("result").innerHTML = event.message;
+            }
+        };
+
+    }
+    function dbye(){
+        Visualforce.remoting.Manager.invokeAction(
+            "{! $RemoteAction.ChildRemoteController.goodbye}",
+            saybye,
+            {escape:true}
+        );
+
+        function saybye(result,event){
+            if(event.status){
+                document.getElementById("result").innerHTML = result;
+            }else if(event.type === "exception"){
+                document.getElementById("result").innerHTML = event.message + "<br/><pre>" + event.where + "</pre>"
+            }else{
+                document.getElementById("result").innerHTML = event.message;
+            }
+        }
+    }
+    function bye(){
+        document.getElementById("result").innerHTML = "";
+        return true;
+    }
+</script>
+
+<apex:form >
+    <apex:commandButton value="sayhello" onclick="sayhello('Jude')" reRender="result"></apex:commandButton>
+     &nbsp;
+     <apex:commandButton value="goodbye" onclick="dbye()" reRender="result"></apex:commandButton>
+     &nbsp;
+    <button onclick="bye()">byebye</button>
+    &nbsp;
+    <apex:commandButton value="GetAccountName" onclick="gethello" reRender="result"></apex:commandButton>
+    <div id="result">[results]</div>
+</apex:form>
+
+</apex:page>
