@@ -21,7 +21,6 @@ on:
 
 jobs:
   verify-images:
-    environment: development
     runs-on: ubuntu-latest
     permissions:
       contents: read
