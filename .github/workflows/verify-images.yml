@@ -37,6 +37,61 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Log in to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Prepare environment files for ${{ matrix.environment }}
+        run: |
+          # Compose 环境文件
+          COMPOSE_ENV_FILE="compose/${{ matrix.environment }}.compose.env"
+          COMPOSE_EXAMPLE="${COMPOSE_ENV_FILE}.example"
+          if [ ! -f "${COMPOSE_ENV_FILE}" ]; then
+            echo "Creating ${COMPOSE_ENV_FILE} from example..."
+            cp "${COMPOSE_EXAMPLE}" "${COMPOSE_ENV_FILE}"
+          fi
+
+          # 后端应用环境文件
+          BACKEND_ENV_FILE="env/${{ matrix.environment }}/backend.env"
+          BACKEND_EXAMPLE="${BACKEND_ENV_FILE}.example"
+          if [ ! -f "${BACKEND_ENV_FILE}" ]; then
+            echo "Creating ${BACKEND_ENV_FILE} from example..."
+            cp "${BACKEND_EXAMPLE}" "${BACKEND_ENV_FILE}"
+          fi
+
+          # 前端应用环境文件（通常不含敏感信息，但确保存在）
+          FRONTEND_ENV_FILE="env/${{ matrix.environment }}/frontend.env"
+          FRONTEND_EXAMPLE="${FRONTEND_ENV_FILE}.example"
+          if [ ! -f "${FRONTEND_ENV_FILE}" ]; then
+            echo "Creating ${FRONTEND_ENV_FILE} from example..."
+            cp "${FRONTEND_EXAMPLE}" "${FRONTEND_ENV_FILE}"
+          fi
+
+          # 根据环境注入 Secrets
+          if [ "${{ matrix.environment }}" = "dev" ]; then
+            # 开发环境
+            sed -i "s/POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=${{ secrets.DEV_POSTGRES_PASSWORD }}/g" "${COMPOSE_ENV_FILE}"
+            sed -i "s/5382/${{ secrets.DEV_DB_PASSWORD }}/g" "${BACKEND_ENV_FILE}"
+            sed -i "s/replace-with-a-real-secret/${{ secrets.DEV_JWT_SECRET }}/g" "${BACKEND_ENV_FILE}"
+            sed -i "s/replace-with-a-real-refresh-secret/${{ secrets.DEV_JWT_REFRESH_SECRET }}/g" "${BACKEND_ENV_FILE}"
+            # 将镜像标签中的示例哈希替换为实际分支名（如果仍为占位符）
+            sed -i "s/dev-abc123def/dev/g" "${COMPOSE_ENV_FILE}"
+          else
+            # 生产环境
+            sed -i "s/POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=${{ secrets.PROD_POSTGRES_PASSWORD }}/g" "${COMPOSE_ENV_FILE}"
+            sed -i "s/change-me/${{ secrets.PROD_DB_PASSWORD }}/g" "${BACKEND_ENV_FILE}"
+            sed -i "s/replace-with-a-real-secret/${{ secrets.PROD_JWT_SECRET }}/g" "${BACKEND_ENV_FILE}"
+            sed -i "s/replace-with-a-real-refresh-secret/${{ secrets.PROD_JWT_REFRESH_SECRET }}/g" "${BACKEND_ENV_FILE}"
+            # 将镜像标签中的示例哈希替换为实际分支名
+            sed -i "s/main-abc123def/main/g" "${COMPOSE_ENV_FILE}"
+          fi
+
+          echo "Generated ${COMPOSE_ENV_FILE}:"
+          cat "${COMPOSE_ENV_FILE}"
+
       - name: Verify images for ${{ matrix.environment }}
         run: |
           chmod +x scripts/verify-images.sh
