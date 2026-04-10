@@ -27,6 +27,7 @@ jobs:
       packages: read
 
     strategy:
+      fail-fast: false   # 👈 新增：即使一个环境失败，其他环境继续运行
       matrix:
         environment: [dev, prod]
 
@@ -85,7 +86,7 @@ jobs:
             sed -i "s/change-me/${{ secrets.PROD_DB_PASSWORD }}/g" "${BACKEND_ENV_FILE}"
             sed -i "s/replace-with-a-real-secret/${{ secrets.PROD_JWT_SECRET }}/g" "${BACKEND_ENV_FILE}"
             sed -i "s/replace-with-a-real-refresh-secret/${{ secrets.PROD_JWT_REFRESH_SECRET }}/g" "${BACKEND_ENV_FILE}"
-            sed -i "s/main-abc123def/main/g" "${COMPOSE_ENV_FILE}"
+            sed -i "s/main-abc123def/develop/g" "${COMPOSE_ENV_FILE}"
           fi
 
           echo "Generated ${COMPOSE_ENV_FILE}:"
