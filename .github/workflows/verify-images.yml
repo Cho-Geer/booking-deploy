@@ -79,7 +79,7 @@ jobs:
             sed -i "s/5382/${{ secrets.DEV_DB_PASSWORD }}/g" "${BACKEND_ENV_FILE}"
             sed -i "s/replace-with-a-real-secret/${{ secrets.DEV_JWT_SECRET }}/g" "${BACKEND_ENV_FILE}"
             sed -i "s/replace-with-a-real-refresh-secret/${{ secrets.DEV_JWT_REFRESH_SECRET }}/g" "${BACKEND_ENV_FILE}"
-            sed -i "s/dev-abc123def/dev/g" "${COMPOSE_ENV_FILE}"
+            sed -i "s/dev-abc123def/develop/g" "${COMPOSE_ENV_FILE}"
           else
             sed -i "s/POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=${{ secrets.PROD_POSTGRES_PASSWORD }}/g" "${COMPOSE_ENV_FILE}"
             sed -i "s/change-me/${{ secrets.PROD_DB_PASSWORD }}/g" "${BACKEND_ENV_FILE}"
