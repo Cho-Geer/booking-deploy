@@ -96,3 +96,12 @@ jobs:
         run: |
           chmod +x scripts/verify-images.sh
           ./scripts/verify-images.sh ${{ matrix.environment }}
+        env:
+            DEV_POSTGRES_PASSWORD: ${{ secrets.DEV_POSTGRES_PASSWORD }}
+            DEV_DB_PASSWORD: ${{ secrets.DEV_DB_PASSWORD }}
+            DEV_JWT_SECRET: ${{ secrets.DEV_JWT_SECRET }}
+            DEV_JWT_REFRESH_SECRET: ${{ secrets.DEV_JWT_REFRESH_SECRET }}
+            PROD_POSTGRES_PASSWORD: ${{ secrets.PROD_POSTGRES_PASSWORD }}
+            PROD_DB_PASSWORD: ${{ secrets.PROD_DB_PASSWORD }}
+            PROD_JWT_SECRET: ${{ secrets.PROD_JWT_SECRET }}
+            PROD_JWT_REFRESH_SECRET: ${{ secrets.PROD_JWT_REFRESH_SECRET }}

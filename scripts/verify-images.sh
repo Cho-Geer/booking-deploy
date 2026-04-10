@@ -29,14 +29,60 @@ else
     ENV_FRONTEND_FILE="${ENV_DIR}/dev/frontend.env"
 fi
 
-# 检查必需文件
+# 检查并自动生成必需文件
 for file in "${COMPOSE_FILE}" "${ENV_FILE}"; do
-    if [ ! -f "${file}" ]; then
+    # 如果是 env 文件且不存在，尝试从 .example 复制并注入 Secrets
+    if [[ "$file" == *".env" ]] && [ ! -f "${file}" ]; then
+        EXAMPLE_FILE="${file}.example"
+        if [ ! -f "${EXAMPLE_FILE}" ]; then
+            echo "❌ 错误: 找不到示例文件 ${EXAMPLE_FILE}"
+            exit 1
+        fi
+        echo "⚠️  ${file} 不存在，从 ${EXAMPLE_FILE} 复制并注入环境变量..."
+        cp "${EXAMPLE_FILE}" "${file}"
+        
+        # 注入 Secrets（如果对应的环境变量存在）
+        if [ "${ENV}" = "dev" ]; then
+            sed -i "s/POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=${DEV_POSTGRES_PASSWORD:-5382}/g" "${file}"
+            sed -i "s/dev-abc123def/dev/g" "${file}"
+        else
+            sed -i "s/POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=${PROD_POSTGRES_PASSWORD:-change-me}/g" "${file}"
+            sed -i "s/main-abc123def/main/g" "${file}"
+        fi
+    elif [ ! -f "${file}" ]; then
         echo "❌ 错误: 找不到文件 ${file}"
-        echo "请从示例文件创建: ${file}.example"
+        if [[ "$file" == *".env" ]]; then
+            echo "请从示例文件创建: ${file}.example"
+        fi
         exit 1
     fi
 done
+
+# 同样处理应用环境文件（backend.env 等）
+generate_app_env() {
+    local EXAMPLE_FILE="$1"
+    local TARGET_FILE="$2"
+    if [ ! -f "${TARGET_FILE}" ]; then
+        if [ ! -f "${EXAMPLE_FILE}" ]; then
+            echo "❌ 错误: 找不到示例文件 ${EXAMPLE_FILE}"
+            exit 1
+        fi
+        echo "⚠️  ${TARGET_FILE} 不存在，从 ${EXAMPLE_FILE} 复制并注入机密..."
+        cp "${EXAMPLE_FILE}" "${TARGET_FILE}"
+        if [ "${ENV}" = "dev" ]; then
+            sed -i "s/5382/${DEV_DB_PASSWORD:-5382}/g" "${TARGET_FILE}"
+            sed -i "s/replace-with-a-real-secret/${DEV_JWT_SECRET:-dev-secret}/g" "${TARGET_FILE}"
+            sed -i "s/replace-with-a-real-refresh-secret/${DEV_JWT_REFRESH_SECRET:-dev-refresh-secret}/g" "${TARGET_FILE}"
+        else
+            sed -i "s/change-me/${PROD_DB_PASSWORD:-change-me}/g" "${TARGET_FILE}"
+            sed -i "s/replace-with-a-real-secret/${PROD_JWT_SECRET:-prod-secret}/g" "${TARGET_FILE}"
+            sed -i "s/replace-with-a-real-refresh-secret/${PROD_JWT_REFRESH_SECRET:-prod-refresh-secret}/g" "${TARGET_FILE}"
+        fi
+    fi
+}
+
+generate_app_env "${ENV_BACKEND_FILE}.example" "${ENV_BACKEND_FILE}"
+generate_app_env "${ENV_FRONTEND_FILE}.example" "${ENV_FRONTEND_FILE}"
 
 # 加载环境变量用于显示
 echo "📋 部署配置:"
