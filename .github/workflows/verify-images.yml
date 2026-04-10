@@ -1,0 +1,106 @@
+name: Verify Docker Images Deployment Readiness
+
+on:
+  pull_request:
+    branches:
+      - master
+      - develop
+    paths:
+      - 'compose/**'
+      - 'scripts/verify-images.sh'
+      - '.github/workflows/verify-images.yml'
+  push:
+    branches:
+      - master
+      - develop
+    paths:
+      - 'compose/**'
+      - 'scripts/verify-images.sh'
+      - '.github/workflows/verify-images.yml'
+  workflow_dispatch:
+
+jobs:
+  verify-images:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+
+    strategy:
+      fail-fast: false   # 👈 新增：即使一个环境失败，其他环境继续运行
+      matrix:
+        environment: [dev, prod]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Prepare environment files for ${{ matrix.environment }}
+        run: |
+          # Compose 环境文件
+          COMPOSE_ENV_FILE="compose/${{ matrix.environment }}.compose.env"
+          COMPOSE_EXAMPLE="${COMPOSE_ENV_FILE}.example"
+          if [ ! -f "${COMPOSE_ENV_FILE}" ]; then
+            echo "Creating ${COMPOSE_ENV_FILE} from example..."
+            cp "${COMPOSE_EXAMPLE}" "${COMPOSE_ENV_FILE}"
+          fi
+
+          # 后端应用环境文件
+          BACKEND_ENV_FILE="env/${{ matrix.environment }}/backend.env"
+          BACKEND_EXAMPLE="${BACKEND_ENV_FILE}.example"
+          if [ ! -f "${BACKEND_ENV_FILE}" ]; then
+            echo "Creating ${BACKEND_ENV_FILE} from example..."
+            cp "${BACKEND_EXAMPLE}" "${BACKEND_ENV_FILE}"
+          fi
+
+          # 前端应用环境文件
+          FRONTEND_ENV_FILE="env/${{ matrix.environment }}/frontend.env"
+          FRONTEND_EXAMPLE="${FRONTEND_ENV_FILE}.example"
+          if [ ! -f "${FRONTEND_ENV_FILE}" ]; then
+            echo "Creating ${FRONTEND_ENV_FILE} from example..."
+            cp "${FRONTEND_EXAMPLE}" "${FRONTEND_ENV_FILE}"
+          fi
+
+          # 替换 Docker Hub 用户名占位符
+          sed -i "s/{{DOCKER_HUB_USER}}/${{ vars.DOCKER_HUB_USER }}/g" "${COMPOSE_ENV_FILE}"
+
+          # 根据环境注入 Secrets
+          if [ "${{ matrix.environment }}" = "dev" ]; then
+            sed -i "s/POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=${{ secrets.DEV_POSTGRES_PASSWORD }}/g" "${COMPOSE_ENV_FILE}"
+            sed -i "s/5382/${{ secrets.DEV_DB_PASSWORD }}/g" "${BACKEND_ENV_FILE}"
+            sed -i "s/replace-with-a-real-secret/${{ secrets.DEV_JWT_SECRET }}/g" "${BACKEND_ENV_FILE}"
+            sed -i "s/replace-with-a-real-refresh-secret/${{ secrets.DEV_JWT_REFRESH_SECRET }}/g" "${BACKEND_ENV_FILE}"
+            sed -i "s/dev-abc123def/develop/g" "${COMPOSE_ENV_FILE}"
+          else
+            sed -i "s/POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=${{ secrets.PROD_POSTGRES_PASSWORD }}/g" "${COMPOSE_ENV_FILE}"
+            sed -i "s/change-me/${{ secrets.PROD_DB_PASSWORD }}/g" "${BACKEND_ENV_FILE}"
+            sed -i "s/replace-with-a-real-secret/${{ secrets.PROD_JWT_SECRET }}/g" "${BACKEND_ENV_FILE}"
+            sed -i "s/replace-with-a-real-refresh-secret/${{ secrets.PROD_JWT_REFRESH_SECRET }}/g" "${BACKEND_ENV_FILE}"
+            sed -i "s/main-abc123def/develop/g" "${COMPOSE_ENV_FILE}"
+          fi
+
+          echo "Generated ${COMPOSE_ENV_FILE}:"
+          cat "${COMPOSE_ENV_FILE}"
+
+      - name: Verify images for ${{ matrix.environment }}
+        run: |
+          chmod +x scripts/verify-images.sh
+          ./scripts/verify-images.sh ${{ matrix.environment }}
+        env:
+            DEV_POSTGRES_PASSWORD: ${{ secrets.DEV_POSTGRES_PASSWORD }}
+            DEV_DB_PASSWORD: ${{ secrets.DEV_DB_PASSWORD }}
+            DEV_JWT_SECRET: ${{ secrets.DEV_JWT_SECRET }}
+            DEV_JWT_REFRESH_SECRET: ${{ secrets.DEV_JWT_REFRESH_SECRET }}
+            PROD_POSTGRES_PASSWORD: ${{ secrets.PROD_POSTGRES_PASSWORD }}
+            PROD_DB_PASSWORD: ${{ secrets.PROD_DB_PASSWORD }}
+            PROD_JWT_SECRET: ${{ secrets.PROD_JWT_SECRET }}
+            PROD_JWT_REFRESH_SECRET: ${{ secrets.PROD_JWT_REFRESH_SECRET }}

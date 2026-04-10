@@ -1,0 +1,97 @@
+name: Verify Deployment Configuration
+
+on:
+  pull_request:
+    branches:
+      - master
+      - develop
+  push:
+    branches:
+      - master
+      - develop
+    paths:
+      - 'compose/**'
+      - 'env/**'
+      - 'scripts/deploy-*.sh'
+      - '.github/workflows/verify-deployment.yml'
+
+jobs:
+  verify-deployment-configuration:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    strategy:
+      matrix:
+        environment: [dev, prod]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify ${{ matrix.environment }} configuration
+        run: |
+          echo "🔍 Verifying ${{ matrix.environment }} deployment configuration..."
+          
+          # Check Compose files
+          COMPOSE_FILE="compose/docker-compose.${{ matrix.environment }}.yml"
+          if [ ! -f "$COMPOSE_FILE" ]; then
+            echo "❌ Error: Compose file $COMPOSE_FILE not found"
+            exit 1
+          fi
+          echo "✅ Compose file exists: $COMPOSE_FILE"
+
+          # Check environment variable files
+          COMPOSE_ENV_FILE="compose/${{ matrix.environment }}.compose.env.example"
+          if [ ! -f "$COMPOSE_ENV_FILE" ]; then
+            echo "❌ Error: Compose env file $COMPOSE_ENV_FILE not found"
+            exit 1
+          fi
+          echo "✅ Compose env file exists: $COMPOSE_ENV_FILE"
+
+          # Check application environment files
+          APP_ENV_DIR="env/${{ matrix.environment }}"
+          if [ ! -d "$APP_ENV_DIR" ]; then
+            echo "❌ Error: Application env directory $APP_ENV_DIR not found"
+            exit 1
+          fi
+          
+          BACKEND_ENV_FILE="$APP_ENV_DIR/backend.env.example"
+          if [ ! -f "$BACKEND_ENV_FILE" ]; then
+            echo "❌ Error: Backend env file $BACKEND_ENV_FILE not found"
+            exit 1
+          fi
+          echo "✅ Backend env file exists: $BACKEND_ENV_FILE"
+
+          FRONTEND_ENV_FILE="$APP_ENV_DIR/frontend.env.example"
+          if [ ! -f "$FRONTEND_ENV_FILE" ]; then
+            echo "❌ Error: Frontend env file $FRONTEND_ENV_FILE not found"
+            exit 1
+          fi
+          echo "✅ Frontend env file exists: $FRONTEND_ENV_FILE"
+
+          # Validate deployment scripts
+          DEPLOY_SCRIPT="scripts/deploy-${{ matrix.environment }}.sh"
+          if [ ! -f "$DEPLOY_SCRIPT" ]; then
+            echo "❌ Error: Deployment script $DEPLOY_SCRIPT not found"
+            exit 1
+          fi
+          
+          if [ ! -x "$DEPLOY_SCRIPT" ]; then
+            echo "⚠️  Warning: Deployment script $DEPLOY_SCRIPT is not executable"
+          fi
+          echo "✅ Deployment script exists: $DEPLOY_SCRIPT"
+
+          # Validate verify-images.sh
+          VERIFY_SCRIPT="scripts/verify-images.sh"
+          if [ ! -f "$VERIFY_SCRIPT" ]; then
+            echo "❌ Error: Verify images script $VERIFY_SCRIPT not found"
+            exit 1
+          fi
+          
+          if [ ! -x "$VERIFY_SCRIPT" ]; then
+            echo "⚠️  Warning: Verify script $VERIFY_SCRIPT is not executable"
+          fi
+          echo "✅ Verify script exists: $VERIFY_SCRIPT"
+
+          echo "🎉 ${{ matrix.environment }} deployment configuration is valid!"

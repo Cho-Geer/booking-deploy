@@ -20,6 +20,12 @@ uploads/
 /.trae-aicc
 /.clinerules
 
+# 文档管理策略：默认忽略docs目录，明确列出需要版本管理的文档
+/docs/*
+# 核心项目文档（必须纳入版本管理）
+!/docs/devops-ci-cd-assessment-and-remediation-plan.md
+!/docs/devops-runbook.md
+
 # 操作系统文件（不应提交）
 .DS_Store
 .DS_Store?
