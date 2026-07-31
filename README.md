@@ -1,293 +1,293 @@
-# Booking System Deployment Guide
+# 予約システム デプロイガイド
 
-This document describes the complete deployment process for the Booking system, covering both development and production environments.
+このドキュメントは、予約システムの完全なデプロイ手順を、開発環境と本番環境の両方を対象に説明するものです。
 
-## Directory Structure
+## ディレクトリ構成
 
 ```
 booking-deploy/
-├── compose/                    # Docker Compose configuration files
-│   ├── docker-compose.dev.yml     # Development environment orchestration
-│   ├── docker-compose.prod.yml    # Production environment orchestration
-│   ├── dev.compose.env.example    # Development environment variables template
-│   └── prod.compose.env.example   # Production environment variables template
-├── env/                       # Application environment variables
-│   ├── dev/                   # Development environment
+├── compose/                    # Docker Compose 設定ファイル
+│   ├── docker-compose.dev.yml     # 開発環境オーケストレーション
+│   ├── docker-compose.prod.yml    # 本番環境オーケストレーション
+│   ├── dev.compose.env.example    # 開発環境変数のテンプレート
+│   └── prod.compose.env.example   # 本番環境変数のテンプレート
+├── env/                       # アプリケーション環境変数
+│   ├── dev/                   # 開発環境
 │   │   ├── backend.env.example
 │   │   └── frontend.env.example
-│   └── prod/                  # Production environment
+│   └── prod/                  # 本番環境
 │       ├── backend.env.example
 │       └── frontend.env.example
-└── scripts/                   # Deployment scripts
-    ├── deploy-dev.sh          # Development environment deployment script
-    ├── deploy-prod.sh         # Production environment deployment script
-    └── verify-images.sh       # Image verification script
+└── scripts/                   # デプロイスクリプト
+    ├── deploy-dev.sh          # 開発環境デプロイスクリプト
+    ├── deploy-prod.sh         # 本番環境デプロイスクリプト
+    └── verify-images.sh       # イメージ検証スクリプト
 ```
 
-## Environment Preparation
+## 環境準備
 
-### 1. Docker and Docker Compose
-- Docker Engine 20.10+ or Docker Desktop
-- Docker Compose v2+ (recommended) or docker-compose v1.29+
+### 1. Docker と Docker Compose
+- Docker Engine 20.10+ または Docker Desktop
+- Docker Compose v2+ (推奨) または docker-compose v1.29+
 
-### 2. Environment Variables Preparation
+### 2. 環境変数の準備
 
-#### Development Environment
+#### 開発環境
 ```bash
-# Copy template files
+# テンプレートファイルをコピー
 cd booking-deploy
 
-# Compose environment variables
+# Compose 用環境変数
 cp compose/dev.compose.env.example compose/dev.compose.env
-# Edit dev.compose.env to update Docker Hub image addresses if needed
+# 必要に応じて dev.compose.env を編集し、Docker Hub のイメージアドレスを更新
 
-# Application environment variables
+# アプリケーション用環境変数
 cp env/dev/backend.env.example env/dev/backend.env
 cp env/dev/frontend.env.example env/dev/frontend.env
-# Edit .env files and set actual values (e.g., JWT_SECRET, etc.)
+# .env ファイルを編集し、実際の値(JWT_SECRET など)を設定
 ```
 
-#### Production Environment
+#### 本番環境
 ```bash
 cd booking-deploy
 cp compose/prod.compose.env.example compose/prod.compose.env
 cp env/prod/backend.env.example env/prod/backend.env
 cp env/prod/frontend.env.example env/prod/frontend.env
 
-# Important: Production environment requires strong passwords and real secrets
+# 重要: 本番環境では強いパスワードと本物のシークレットが必要
 ```
 
-## Image Tagging Strategy
+## イメージタグ戦略
 
-The Booking system's CI/CD pipeline automatically generates multiple types of Docker image tags, each with different purposes and reliability characteristics:
+予約システムの CI/CD パイプラインは、複数種類の Docker イメージタグを自動生成します。それぞれ目的と信頼性の特性が異なります。
 
-### Tag Types
+### タグの種類
 
-| Tag Type | Format Example | Mutability | Recommended Use | Reliability |
+| タグ種別 | 形式例 | 変更可否 | 推奨用途 | 信頼性 |
 |----------|---------------|------------|----------------|-------------|
-| **Branch Tags** | `dev`, `main` | **Mutable** - Updated on every push | Rapid development, integration testing | Low - Not suitable for production |
-| **Commit Tags** | `dev-abc123`, `main-def456` | **Immutable** - Tied to specific commits | Reliable deployment, rollback, auditing | High - Recommended for production |
-| **Semantic Version** | `v1.0.0`, `v1.2.3` | **Immutable** - Versioned releases | Official releases, version management | Highest - Best practice for production |
-| **PR Tags** | `pr-123` | **Mutable** - PR builds | PR verification, code review | Low - For temporary use only |
-| **latest** | `latest` | **Mutable** - Latest from main branch | Development convenience | Low - Prohibited for production |
+| **ブランチタグ** | `dev`, `main` | **可変** — プッシュのたびに更新 | 迅速な開発、統合テスト | 低 — 本番には不適 |
+| **コミットタグ** | `dev-abc123`, `main-def456` | **不変** — 特定コミットに紐付け | 信頼性のあるデプロイ、ロールバック、監査 | 高 — 本番推奨 |
+| **セマンティックバージョン** | `v1.0.0`, `v1.2.3` | **不変** — バージョン付けされたリリース | 公式リリース、バージョン管理 | 最高 — 本番のベストプラクティス |
+| **PR タグ** | `pr-123` | **可変** — PR のビルド | PR 検証、コードレビュー | 低 — 一時用途のみ |
+| **latest** | `latest` | **可変** — main の最新 | 開発便宜 | 低 — 本番禁止 |
 
-### Selection Guide
+### 選定ガイド
 
-1. **Development Environment**:
-   - Rapid iteration: Use `dev` branch tag
-   - Reliable testing: Use `dev-<commit-hash>` commit tag
+1. **開発環境**:
+   - 迅速なイテレーション: `dev` ブランチタグを使用
+   - 信頼性のあるテスト: `dev-<commit-hash>` コミットタグを使用
 
-2. **Production Environment**:
-   - **Must use immutable tags**: Commit tags or semantic version tags
-   - Emergency fixes: Use `main-<commit-hash>`
-   - Official releases: Use semantic versions like `v1.0.0`
-   - **Prohibited: `main` or `latest` tags**
+2. **本番環境**:
+   - **不変タグを必ず使用**: コミットタグまたはセマンティックバージョンタグ
+   - 緊急修正: `main-<commit-hash>` を使用
+   - 公式リリース: `v1.0.0` のようなセマンティックバージョンを使用
+   - **禁止: `main` または `latest` タグ**
 
-### Image Verification
+### イメージ検証
 
-All images are verified with real deployment topology:
-- ✅ Include PostgreSQL and Redis dependencies
-- ✅ Run database migrations
-- ✅ Verify health endpoint (`/v1/health`)
-- ✅ Check database and Redis connection status
-- ✅ Verify frontend accessibility
+すべてのイメージは実際のデプロイトポロジーで検証されます:
+- ✅ PostgreSQL と Redis の依存関係を含む
+- ✅ データベースマイグレーションを実行
+- ✅ ヘルスエンドポイント(`/v1/health`)を検証
+- ✅ データベースと Redis の接続状態を確認
+- ✅ フロントエンドのアクセシビリティを検証
 
-### View Available Tags
+### 利用可能なタグの確認
 
-Image tags are automatically generated by GitHub Actions workflows:
-- Backend images: [booking-backend/.github/workflows/backend-image.yml](../booking-backend/.github/workflows/backend-image.yml)
-- Frontend images: [booking-frontend/.github/workflows/frontend-image.yml](../booking-frontend/.github/workflows/frontend-image.yml)
-- Migration images: Dedicated `booking-backend-migration` image
+イメージタグは GitHub Actions のワークフローにより自動生成されます:
+- バックエンドイメージ: [booking-backend/.github/workflows/backend-image.yml](../booking-backend/.github/workflows/backend-image.yml)
+- フロントエンドイメージ: [booking-frontend/.github/workflows/frontend-image.yml](../booking-frontend/.github/workflows/frontend-image.yml)
+- マイグレーションイメージ: 専用の `booking-backend-migration` イメージ
 
-### Rollback Operations
+### ロールバック操作
 
-To rollback to a previous version:
-1. Find the previous commit tag (e.g., `main-abc123def`)
-2. Update image tags in `prod.compose.env` file
-3. Re-run the deployment script
+以前のバージョンへロールバックするには:
+1. 以前のコミットタグ(例: `main-abc123def`)を確認
+2. `prod.compose.env` ファイル内のイメージタグを更新
+3. デプロイスクリプトを再実行
 
 ```bash
-# Rollback to specific commit
+# 特定のコミットへロールバック
 BACKEND_IMAGE=docker.io/cho-geer/booking-backend:main-previous-commit
 BACKEND_MIGRATION_IMAGE=docker.io/cho-geer/booking-backend-migration:main-previous-commit
 FRONTEND_IMAGE=docker.io/cho-geer/booking-frontend:main-previous-commit
 ```
 
-## Deployment Process
+## デプロイ手順
 
-### Development Environment Deployment
+### 開発環境のデプロイ
 ```bash
-# Enter booking-deploy directory
+# booking-deploy ディレクトリへ移動
 cd booking-deploy
 
-# Run deployment script
+# デプロイスクリプトを実行
 ./scripts/deploy-dev.sh
 ```
 
-The deployment script performs the following steps:
-1. **Check for environment variable files** existence
-2. **Pull latest images** from Docker Hub
-3. **Execute database migrations** (independent migration service)
-4. **Start all services** (PostgreSQL, Redis, Backend, Frontend)
-5. **Health check** to verify all services are available
-   - Backend health endpoint: `http://localhost:3001/v1/health`
-   - Backend Swagger: `http://localhost:3001/api/docs`
-   - Frontend page: `http://localhost:3000`
+デプロイスクリプトは以下の手順を実行します:
+1. **環境変数ファイルの存在をチェック**
+2. Docker Hub から**最新イメージを取得**
+3. **データベースマイグレーションを実行**(独立したマイグレーションサービス)
+4. **すべてのサービスを開始**(PostgreSQL、Redis、バックエンド、フロントエンド)
+5. **ヘルスチェック**ですべてのサービスが利用可能かを確認
+   - バックエンドヘルスエンドポイント: `http://localhost:3001/v1/health`
+   - バックエンド Swagger: `http://localhost:3001/api/docs`
+   - フロントエンドページ: `http://localhost:3000`
 
-### Production Environment Deployment
+### 本番環境のデプロイ
 ```bash
 cd booking-deploy
 ./scripts/deploy-prod.sh
 ```
 
-The production environment deployment process is the same as development environment but uses different configurations:
-- Different Docker Compose file (`docker-compose.prod.yml`)
-- Different environment variable files (`prod.compose.env`, `env/prod/`)
-- Possibly different network configurations and resource constraints
+本番環境のデプロイ手順は開発環境と同じですが、設定が異なります:
+- 異なる Docker Compose ファイル(`docker-compose.prod.yml`)
+- 異なる環境変数ファイル(`prod.compose.env`、`env/prod/`)
+- ネットワーク構成やリソース制限が異なる可能性あり
 
-## Service Architecture
+## サービス構成
 
-### Development Environment Services
-| Service | Image | Port | Description |
+### 開発環境サービス
+| サービス | イメージ | ポート | 説明 |
 |---------|-------|------|-------------|
-| PostgreSQL | `postgres:16` | 5432 | Main database |
-| Redis | `redis:7-alpine` | 6379 | Cache and session storage |
-| Backend | `${BACKEND_IMAGE}` | 3001 | NestJS API service |
-| Frontend | `${FRONTEND_IMAGE}` | 3000 | Next.js frontend application |
-| Migration | `${BACKEND_MIGRATION_IMAGE}` | - | Database migration service |
+| PostgreSQL | `postgres:16` | 5432 | メインデータベース |
+| Redis | `redis:7-alpine` | 6379 | キャッシュとセッションストア |
+| Backend | `${BACKEND_IMAGE}` | 3001 | NestJS API サービス |
+| Frontend | `${FRONTEND_IMAGE}` | 3000 | Next.js フロントエンドアプリケーション |
+| Migration | `${BACKEND_MIGRATION_IMAGE}` | - | データベースマイグレーションサービス |
 
-### Production Environment Differences
-- May use external databases (e.g., RDS) instead of containerized PostgreSQL
-- May use external Redis clusters
-- May add load balancing and monitoring services
-- Different resource constraints and restart policies
+### 本番環境との違い
+- コンテナ化された PostgreSQL の代わりに外部データベース(例: RDS)を使用する場合あり
+- 外部 Redis クラスターを使用する場合あり
+- ロードバランサーや監視サービスを追加する場合あり
+- リソース制限や再起動ポリシーが異なる
 
-## Database Migrations
+## データベースマイグレーション
 
-### Independent Migration Service
-The deployment process includes an independent `migration` service to ensure:
-1. **Migrations execute before application startup**
-2. **Deployment stops on failure** to prevent applications from connecting to inconsistent databases
-3. **Idempotency**: `prisma migrate deploy` can be safely executed repeatedly
+### 独立したマイグレーションサービス
+デプロイプロセスには、独立した `migration` サービスが含まれており、以下を保証します:
+1. **マイグレーションはアプリ起動前に実行される**
+2. **失敗時にはデプロイを停止**し、アプリが整合性のない DB に接続するのを防ぐ
+3. **冪等性**: `prisma migrate deploy` は安全に繰り返し実行可能
 
-### Manual Migration Execution
+### 手動でのマイグレーション実行
 ```bash
-# Development environment
+# 開発環境
 docker compose -f compose/docker-compose.dev.yml --env-file compose/dev.compose.env run --rm migration
 
-# Production environment
+# 本番環境
 docker compose -f compose/docker-compose.prod.yml --env-file compose/prod.compose.env run --rm migration
 ```
 
-## Health Checks and Monitoring
+## ヘルスチェックと監視
 
-### Built-in Health Checks
-- **Backend**: `GET /v1/health` - Returns application, database, and Redis status
-- **PostgreSQL**: Docker health check uses `pg_isready`
-- **Redis**: Docker health check uses `redis-cli ping`
+### 内蔵ヘルスチェック
+- **Backend**: `GET /v1/health` — アプリ、DB、Redis の状態を返す
+- **PostgreSQL**: Docker ヘルスチェックは `pg_isready` を使用
+- **Redis**: Docker ヘルスチェックは `redis-cli ping` を使用
 
-### Post-Deployment Verification
-The deployment script automatically verifies:
-1. Backend health endpoint returns `200 OK`
-2. Swagger UI is accessible
-3. Frontend homepage is accessible
+### デプロイ後の検証
+デプロイスクリプトは以下を自動検証します:
+1. バックエンドのヘルスエンドポイントが `200 OK` を返すこと
+2. Swagger UI にアクセス可能であること
+3. フロントエンドのホームページにアクセス可能であること
 
-### Manual Verification
+### 手動検証
 ```bash
-# Check backend health
+# バックエンドのヘルスチェック
 curl http://localhost:3001/v1/health | jq .
 
-# Check service status
+# サービスステータスの確認
 docker compose -f compose/docker-compose.dev.yml --env-file compose/dev.compose.env ps
 ```
 
-## Troubleshooting
+## トラブルシューティング
 
-### Common Issues
+### よくある問題
 
-#### 1. Missing Environment Variable Files
+#### 1. 環境変数ファイルの欠落
 ```
 Missing booking-deploy/compose/dev.compose.env
 Create it from booking-deploy/compose/dev.compose.env.example
 ```
-**Solution**: Copy the template file and fill in actual values.
+**解決策**: テンプレートファイルをコピーし、実際の値を入力してください。
 
-#### 2. Migration Failure
+#### 2. マイグレーション失敗
 ```
 Error: P3009: migrate found failed migrations in the target database
 ```
-**Solution**:
-- Check database connection string
-- Manually fix migrations: `docker compose exec postgres psql -U postgres -d booking_system`
-- View migration logs
+**解決策**:
+- データベース接続文字列を確認
+- 手動でマイグレーションを修正: `docker compose exec postgres psql -U postgres -d booking_system`
+- マイグレーションログを確認
 
-#### 3. Health Check Failure
-The deployment script times out after 80 seconds.
-**Solution**:
-- Check service logs: `docker compose logs backend`
-- Verify database connection: `docker compose exec backend npm run prisma:deploy`
-- Check for port conflicts
+#### 3. ヘルスチェック失敗
+デプロイスクリプトは 80 秒でタイムアウトします。
+**解決策**:
+- サービスログを確認: `docker compose logs backend`
+- データベース接続を確認: `docker compose exec backend npm run prisma:deploy`
+- ポート競合を確認
 
-#### 4. Image Pull Failure
+#### 4. イメージ取得失敗
 ```
 Error response from daemon: pull access denied for cho-geer/booking-backend
 ```
-**Solution**:
-- Confirm the Docker Hub repository exists and is public
-- Or update `compose/dev.compose.env` to use locally built images
+**解決策**:
+- Docker Hub リポジトリが存在し、公開されていることを確認
+- もしくはローカルビルドイメージを使うように `compose/dev.compose.env` を更新
 
-### Viewing Logs
+### ログの確認
 ```bash
-# View all service logs
+# 全サービスのログを表示
 docker compose -f compose/docker-compose.dev.yml --env-file compose/dev.compose.env logs
 
-# View specific service logs
+# 特定サービスのログを表示
 docker compose -f compose/docker-compose.dev.yml --env-file compose/dev.compose.env logs backend
 
-# Tail logs in real-time
+# リアルタイムでログを追跡
 docker compose -f compose/docker-compose.dev.yml --env-file compose/dev.compose.env logs -f
 ```
 
-## Upgrades and Rollbacks
+## アップグレードとロールバック
 
-### Version Upgrades
-1. **Update image tags** in `compose/dev.compose.env` or `compose/prod.compose.env`
-2. **Execute deployment script**
-3. **Verify new version** functionality
+### バージョンアップグレード
+1. `compose/dev.compose.env` または `compose/prod.compose.env` の**イメージタグを更新**
+2. **デプロイスクリプトを実行**
+3. 新バージョンの機能を**検証**
 
-### Rollback Operations
-1. **Restore old image tags** in environment variable files
-2. **Execute deployment script**
-3. **Database forward compatibility**: Ensure old version applications can work with current database schema
+### ロールバック操作
+1. 環境変数ファイルの**古いイメージタグを復元**
+2. **デプロイスクリプトを実行**
+3. **データベース前方互換性**: 古いバージョンのアプリが現在の DB スキーマで動作することを確認
 
-### Zero-Downtime Deployment (Future Extension)
-The current deployment strategy uses rolling restarts, future extensions could include:
-- Blue-green deployment
-- Canary releases
-- Using Docker Swarm or Kubernetes
+### ゼロダウンタイムデプロイ(将来の拡張)
+現在のデプロイ戦略はローリング再起動を使用しており、将来的には次のような拡張が可能です:
+- ブルーグリーンデプロイ
+- カナリーリリース
+- Docker Swarm または Kubernetes の利用
 
-## Security Considerations
+## セキュリティ考慮事項
 
-### 1. Sensitive Information Management
-- **Never commit** `.env` files to version control
-- Use secret management services (e.g., AWS Secrets Manager) for production secrets
-- Regularly rotate JWT secrets and database passwords
+### 1. 機密情報の管理
+- `.env` ファイルをバージョン管理に**絶対にコミットしない**
+- 本番シークレットにはシークレット管理サービス(例: AWS Secrets Manager)を使用
+- JWT シークレットや DB パスワードを定期的にローテーション
 
-### 2. Network Security
-- Use dedicated networks for production environments
-- Restrict external access to database and Redis
-- Enable firewall rules
+### 2. ネットワークセキュリティ
+- 本番環境には専用ネットワークを使用
+- データベースと Redis への外部アクセスを制限
+- ファイアウォールルールを有効化
 
-### 3. Image Security
-- Regularly scan images for vulnerabilities
-- Use minimal base images
-- Update dependencies promptly
+### 3. イメージセキュリティ
+- イメージの脆弱性を定期的にスキャン
+- 最小限のベースイメージを使用
+- 依存関係を迅速に更新
 
-## Automated CI/CD (Future)
+## 自動化された CI/CD(将来)
 
-Current deployment is manually triggered, future integration with CI/CD pipelines:
+現在のデプロイは手動起動ですが、将来的に CI/CD パイプラインと統合する予定です:
 
-### GitHub Actions Workflow
+### GitHub Actions ワークフロー
 ```yaml
 name: Deploy to Production
 on:
@@ -309,44 +309,51 @@ jobs:
             ./scripts/deploy-prod.sh
 ```
 
-### Approval Process
-Production deployments should include:
-1. Code review
-2. Automated test passing
-3. Manual approval
-4. Post-deployment verification
+### 承認プロセス
+本番デプロイには以下を含める必要があります:
+1. コードレビュー
+2. 自動テスト合格
+3. 手動承認
+4. デプロイ後の検証
 
 ---
 
-## Appendix
+## 付録
 
-### A. Manual Deployment Command Reference
+### A. 手動デプロイコマンドリファレンス
 ```bash
-# Pull images
+# イメージを取得
 docker compose -f compose/docker-compose.dev.yml --env-file compose/dev.compose.env pull
 
-# Execute migrations
+# マイグレーションを実行
 docker compose -f compose/docker-compose.dev.yml --env-file compose/dev.compose.env run --rm migration
 
-# Start services
+# サービスを起動
 docker compose -f compose/docker-compose.dev.yml --env-file compose/dev.compose.env up -d
 
-# Stop services
+# サービスを停止
 docker compose -f compose/docker-compose.dev.yml --env-file compose/dev.compose.env down
 
-# View status
+# ステータスを表示
 docker compose -f compose/docker-compose.dev.yml --env-file compose/dev.compose.env ps
 ```
 
-### B. Environment Variables Description
-See comments in each `.env.example` file.
+### B. 環境変数の説明
+各 `.env.example` ファイルのコメントを参照してください。
 
-### C. Related Documentation
-- [Docker Hub Image Build Configuration](../booking-backend/docs/docker-hub-setup.md)
-- [Backend API Documentation](../booking-backend/docs/api-contract.md)
-- [Frontend Development Guide](../booking-frontend/README.md)
+### C. 関連ドキュメント
+- [Docker Hub イメージビルド設定](../booking-backend/docs/docker-hub-setup.md)
+- [バックエンド API ドキュメント](../booking-backend/docs/api-contract.md)
+- [フロントエンド開発ガイド](../booking-frontend/README.md)
 
 ---
 
-*Last updated: 2026-04-08*
-*Maintained by: DevOps Team*
+*最終更新: 2026-04-08*
+*メンテナー: DevOps チーム*
+
+---
+
+## 🇬🇧 English | 🇨🇳 中文
+
+- [English version](./README.en.md)
+- [中文版本](./README.zh.md)
