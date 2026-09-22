@@ -196,8 +196,16 @@ else
     echo "健康响应: ${HEALTH_RESPONSE}"
 fi
 
-# 检查数据库和 Redis 状态
-if echo "${HEALTH_RESPONSE}" | jq -e '.checks.database.status == "up" and .checks.redis.status == "up"' >/dev/null 2>&1; then
+# 检查数据库和 Redis 状态（jq が無い環境は grep フォールバック）
+health_judgement() {
+    if command -v jq >/dev/null 2>&1; then
+        echo "${HEALTH_RESPONSE}" | jq -e '.checks.database.status == "up" and .checks.redis.status == "up"' >/dev/null 2>&1
+    else
+        echo "${HEALTH_RESPONSE}" | grep -q '"database":{[^}]*"status":"up"' && \
+        echo "${HEALTH_RESPONSE}" | grep -q '"redis":{[^}]*"status":"up"'
+    fi
+}
+if health_judgement; then
     echo "  ✅ 数据库和 Redis 连接正常"
 else
     echo "  ⚠️  数据库或 Redis 连接可能有问题"
