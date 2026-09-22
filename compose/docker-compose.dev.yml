@@ -56,6 +56,7 @@ services:
       - ../env/dev/backend.env
     volumes:
       - booking_uploads_dev:/app/uploads
+      - ../certs:/app/certs
     ports:
       - "3001:3001"
     healthcheck:

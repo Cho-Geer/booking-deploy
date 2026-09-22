@@ -2,6 +2,8 @@
 # 敏感环境文件（包含数据库密码、JWT密钥等，切勿提交）
 compose/*.env
 env/*/*.env
+# SF 連携の実秘密鍵(booking-backend/certs からコピー。compose がボリュームマウントして使用。絶対にコミットしない)
+certs/
 
 # 本地覆盖配置
 docker-compose.override.yml
