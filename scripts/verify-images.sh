@@ -40,11 +40,13 @@ for file in "${COMPOSE_FILE}" "${ENV_FILE}"; do
         fi
         echo "⚠️  ${file} 不存在，从 ${EXAMPLE_FILE} 复制并注入环境变量..."
         cp "${EXAMPLE_FILE}" "${file}"
+        DOCKER_HUB_USER="${DOCKER_HUB_USER:?请设置环境变量 DOCKER_HUB_USER 为 Docker Hub 用户名或组织名}"
+        sed -i "s/{{DOCKER_HUB_USER}}/${DOCKER_HUB_USER}/g" "${file}"
+        sed -i "s/dev-abc123def/develop/g" "${file}"
         
         # 注入 Secrets（如果对应的环境变量存在）
         if [ "${ENV}" = "dev" ]; then
             sed -i "s/POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=${DEV_POSTGRES_PASSWORD:-5382}/g" "${file}"
-            sed -i "s/dev-abc123def/dev/g" "${file}"
         else
             sed -i "s/POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=${PROD_POSTGRES_PASSWORD:-change-me}/g" "${file}"
             sed -i "s/main-abc123def/main/g" "${file}"
@@ -62,6 +64,7 @@ done
 generate_app_env() {
     local EXAMPLE_FILE="$1"
     local TARGET_FILE="$2"
+    local INJECT_SECRETS="$3"
     if [ ! -f "${TARGET_FILE}" ]; then
         if [ ! -f "${EXAMPLE_FILE}" ]; then
             echo "❌ 错误: 找不到示例文件 ${EXAMPLE_FILE}"
@@ -69,20 +72,22 @@ generate_app_env() {
         fi
         echo "⚠️  ${TARGET_FILE} 不存在，从 ${EXAMPLE_FILE} 复制并注入机密..."
         cp "${EXAMPLE_FILE}" "${TARGET_FILE}"
-        if [ "${ENV}" = "dev" ]; then
-            sed -i "s/5382/${DEV_DB_PASSWORD:-5382}/g" "${TARGET_FILE}"
-            sed -i "s/replace-with-a-real-secret/${DEV_JWT_SECRET:-dev-secret}/g" "${TARGET_FILE}"
-            sed -i "s/replace-with-a-real-refresh-secret/${DEV_JWT_REFRESH_SECRET:-dev-refresh-secret}/g" "${TARGET_FILE}"
-        else
-            sed -i "s/change-me/${PROD_DB_PASSWORD:-change-me}/g" "${TARGET_FILE}"
-            sed -i "s/replace-with-a-real-secret/${PROD_JWT_SECRET:-prod-secret}/g" "${TARGET_FILE}"
-            sed -i "s/replace-with-a-real-refresh-secret/${PROD_JWT_REFRESH_SECRET:-prod-refresh-secret}/g" "${TARGET_FILE}"
+        if [ "${INJECT_SECRETS}" = "yes" ]; then
+            if [ "${ENV}" = "dev" ]; then
+                sed -i "s/5382/${DEV_DB_PASSWORD:-5382}/g" "${TARGET_FILE}"
+                sed -i "s/replace-with-a-real-secret/${DEV_JWT_SECRET:-dev-secret}/g" "${TARGET_FILE}"
+                sed -i "s/replace-with-a-real-refresh-secret/${DEV_JWT_REFRESH_SECRET:-dev-refresh-secret}/g" "${TARGET_FILE}"
+            else
+                sed -i "s/change-me/${PROD_DB_PASSWORD:-change-me}/g" "${TARGET_FILE}"
+                sed -i "s/replace-with-a-real-secret/${PROD_JWT_SECRET:-prod-secret}/g" "${TARGET_FILE}"
+                sed -i "s/replace-with-a-real-refresh-secret/${PROD_JWT_REFRESH_SECRET:-prod-refresh-secret}/g" "${TARGET_FILE}"
+            fi  
         fi
     fi
 }
 
-generate_app_env "${ENV_BACKEND_FILE}.example" "${ENV_BACKEND_FILE}"
-generate_app_env "${ENV_FRONTEND_FILE}.example" "${ENV_FRONTEND_FILE}"
+generate_app_env "${ENV_BACKEND_FILE}.example" "${ENV_BACKEND_FILE}" "yes"
+generate_app_env "${ENV_FRONTEND_FILE}.example" "${ENV_FRONTEND_FILE}" "no"
 
 # 加载环境变量用于显示
 echo "📋 部署配置:"
@@ -110,24 +115,42 @@ docker compose -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" up -d postgres redi
 
 # 等待依赖服务健康
 echo "⏳ 等待 PostgreSQL 健康..."
+postgre_ok=false
 for i in {1..30}; do
     if docker compose -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" exec -T postgres pg_isready -U postgres -d booking_system >/dev/null 2>&1; then
         echo "  ✅ PostgreSQL 就绪"
+        postgre_ok=true
         break
     fi
     echo "  等待 PostgreSQL... ($i/30)"
     sleep 2
 done
 
+if [[ "${postgre_ok}" == false ]]; then
+    echo "❌ 错误: PostgreSQL 未就绪"
+    docker compose -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" logs postgres
+    docker compose -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" down -v
+    exit 1
+fi
+
 echo "⏳ 等待 Redis 健康..."
+redis_ok=false
 for i in {1..30}; do
     if docker compose -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" exec -T redis redis-cli ping >/dev/null 2>&1; then
         echo "  ✅ Redis 就绪"
+        redis_ok=true
         break
     fi
     echo "  等待 Redis... ($i/30)"
     sleep 2
 done
+
+if [[ "${redis_ok}" == false ]]; then
+    echo "❌ 错误: Redis 未就绪"
+    docker compose -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" logs redis
+    docker compose -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" down -v
+    exit 1
+fi
 
 # 运行迁移
 echo "🔄 运行数据库迁移..."
@@ -145,14 +168,23 @@ docker compose -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" up -d backend front
 # 等待后端健康检查
 echo "⏳ 等待后端健康检查..."
 BACKEND_HEALTH_URL="http://localhost:3001/v1/health"
+backend_ok=false
 for i in {1..40}; do
     if curl -sSf "${BACKEND_HEALTH_URL}" >/dev/null 2>&1; then
         echo "  ✅ 后端健康检查通过"
+        backend_ok=true
         break
     fi
     echo "  等待后端... ($i/40)"
     sleep 3
 done
+
+if [[ "${backend_ok}" == false ]]; then
+    echo "❌ 错误: 后端健康检查失败"
+    docker compose -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" logs backend
+    docker compose -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" down -v
+    exit 1
+fi
 
 # 验证后端健康响应
 echo "📊 验证后端健康状态..."
@@ -165,7 +197,7 @@ else
 fi
 
 # 检查数据库和 Redis 状态
-if echo "${HEALTH_RESPONSE}" | grep -q '"database":"connected"' && echo "${HEALTH_RESPONSE}" | grep -q '"redis":"connected"'; then
+if echo "${HEALTH_RESPONSE}" | jq -e '.checks.database.status == "up" and .checks.redis.status == "up"' >/dev/null 2>&1; then
     echo "  ✅ 数据库和 Redis 连接正常"
 else
     echo "  ⚠️  数据库或 Redis 连接可能有问题"
@@ -174,14 +206,23 @@ fi
 # 验证前端可访问性
 echo "🌐 验证前端可访问性..."
 FRONTEND_URL="http://localhost:3000"
+frontend_ok=false
 for i in {1..30}; do
     if curl -sSf "${FRONTEND_URL}" >/dev/null 2>&1; then
         echo "  ✅ 前端可访问"
+        frontend_ok=true
         break
     fi
     echo "  等待前端... ($i/30)"
     sleep 2
 done
+
+if [[ "${frontend_ok}" == false ]]; then
+    echo "❌ 错误: 前端不可访问"
+    docker compose -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" logs frontend
+    docker compose -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" down -v
+    exit 1
+fi
 
 # 验证 Swagger 文档
 echo "📚 验证 Swagger 文档..."
