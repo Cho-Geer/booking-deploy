@@ -279,7 +279,7 @@ RUN npx prisma generate        # ← 追加: Prisma Client を生成する(backe
   <li>将来の自動化候補(workflow_dispatch の seed ジョブ)は §6 の保留リストへ。</li>
 </ol>
 
-<div class="step-head">Step 6: build-all-images スクリプトの命名統一(G-15・任意) <span class="tag p2">未実施(booking-system-* 命名のまま)</span></div>
+<div class="step-head">Step 6: build-all-images スクリプトの命名統一(G-15・任意) <span class="tag ok">完了(2026-09-22) — スクリプト 2 ファイル(.sh/.ps1)を削除して解消(ローカル一括ビルドは CI イメージ workflow により不要)</span></div>
 <ol>
   <li><code>scripts/build-all-images.sh:64-66</code> / <code>.ps1:67-69</code> のタグ名を CI・compose と同じ <code>booking-backend</code> / <code>booking-backend-migration</code> / <code>booking-frontend</code> に修正。ユーザー名(7 行硬結接)は <code>${DOCKER_HUB_USER:?...}</code> 環境変数参照に変更。</li>
   <li>CI 運用に一本化するなら削除してもよい(判断は実施者に任せる)。</li>
