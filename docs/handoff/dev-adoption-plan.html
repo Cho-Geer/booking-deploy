@@ -69,7 +69,7 @@
   <li>ローカルから <code>verify-images.sh dev</code> が完走する。</li>
   <li>前提修正済みの migration イメージで seed を実行し、ログイン可能な初期ユーザーが存在する。</li>
 </ul>
-<p style="color:#1a7f37;font-weight:700;">進捗(2026-09-22): ゴール 1・3・4 達成 ✓(負試験 2 経路合格 / ローカル通し実行成功 / seed 後に実メール受信・ログイン成功)。ゴール 2(CI の dev leg green)は booking-deploy 側のコミット・PR 後に確認します。</p>
+<p style="color:#1a7f37;font-weight:700;">進捗(2026-09-22): <b>ゴール 1〜4 すべて達成 ✓</b>(負試験 2 経路合格 / CI verify-images dev leg green = PR #5・1m39s / ローカル通し実行成功 / seed 後に実メール受信・ログイン成功)。</p>
 
 <h3>1.4 ローカル運用モデル(実値 env ファイルの手維持)</h3>
 <p><b>方針</b>: 実値は gitignore 対象の実ファイルに<b>1 回だけ作成</b>し、example はプレースホルダのままコミットする。CI への実値供給は従来どおり GitHub secrets 注入に任せる。手作成の対象は <code>env/dev/backend.env</code> / <code>frontend.env</code> と <code>compose/dev.compose.env</code>(rev.6 決定)。compose env は <code>:develop</code> 可変タグで作成するため<b>作成後の保守はゼロ</b>で、pull(98 行)が毎回最新 digest を取得します。この分業は既存のスクリプト構造がそのまま保証している:</p>
@@ -154,7 +154,7 @@ fi</code></pre>
   <li><b>完了条件(負試験)</b>: <code>verify-images.sh dev</code> を開始し、<b>待機ループの表示(⏳ 等待…)が出ている間</b>に別端末で対象コンテナを止める(<code>docker stop booking-backend-dev</code>、または postgres なら <code>docker stop booking-postgres-dev</code>)。スクリプトは起動済みサービスを <code>up -d</code> で再利用するため、<b>事前停止では失敗を注入できない</b>点に注意。タイムアウト後に非 0 で終了し、logs と down が実行されること。</li>
 </ol>
 
-<div class="step-head">Step 2: verify-images.yml の調整(G-3 / G-5 / G-7) <span class="tag ok">完了(2026-09-22) — matrix [dev]・両 paths env/**・空値ガード 4 種(行頭 KEY=/行中パスワード欠損/compose 空値/残存プレースホルダ)すべて実装。CI green は push/PR 後に確認</span></div>
+<div class="step-head">Step 2: verify-images.yml の調整(G-3 / G-5 / G-7) <span class="tag ok">完了(2026-09-22) — matrix [dev]・両 paths env/**・空値ガード 4 種(行頭 KEY=/行中パスワード欠損/compose 空値/残存プレースホルダ)すべて実装。<b>CI dev leg green 確認済み(PR #5)</b></span></div>
 <p><span class="file">booking-deploy/.github/workflows/verify-images.yml</span></p>
 <ol>
   <li><b>matrix を dev に一時限定</b>(G-5 対策)。32 行を:
