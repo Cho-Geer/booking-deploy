@@ -215,7 +215,7 @@ FRONTEND_IMAGE=docker.io/{{DOCKER_HUB_USER}}/booking-frontend:dev-abc123def
   Step 2-3 のガード 4 は「既に置換済み」状態(=アンカーが消えている状態)でも誤検知しない(<code>replace-with-a-real|change-me</code> のみを対象)ため、両案に対応する。</li>
 </ol>
 
-<div class="step-head">Step 4: env/dev examples の更新(G-8 / G-9 / G-13 / G-14) <span class="tag p2">未着手(example は未更新。実値側のみ一部反映済み: RETENTION_*/FRONTEND_URLS)</span></div>
+<div class="step-head">Step 4: env/dev examples の更新(G-8 / G-9 / G-13 / G-14) <span class="tag ok">完了(2026-09-22・commit 679e683) — MAIL_ 6 行・RETENTION 3 行・INTEGRATION_TOKEN・SF_* 追加、死んだ変数 0、FRONTEND_URLS に 127.0.0.1、frontend は NODE_ENV 削除+SF_SITE_URL 追加を実装・検証済み</span></div>
 <p><span class="file">booking-deploy/env/dev/backend.env.example</span></p>
 <ol>
   <li><b>削除</b>(G-9・アプリ未参照): <code>DB_HOST / DB_PORT / DB_USERNAME / DB_PASSWORD / DB_NAME / LOG_LEVEL / LOG_FILE / HEALTHCHECK_TIMEOUT_MS</code>(5-9, 26-28 行)。併せてドキュメントに「DB パスワードは <code>DATABASE_URL</code>(backend env)と <code>POSTGRES_PASSWORD</code>(compose env)のみで管理し、<b>両者は同一値</b>」と明記。</li>
