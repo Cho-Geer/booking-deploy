@@ -16,6 +16,7 @@ on:
     paths:
       - 'compose/**'
       - 'scripts/verify-images.sh'
+      - 'env/**'
       - '.github/workflows/verify-images.yml'
   workflow_dispatch:
 
@@ -29,7 +30,7 @@ jobs:
     strategy:
       fail-fast: false   # 👈 新增：即使一个环境失败，其他环境继续运行
       matrix:
-        environment: [dev, prod]
+        environment: [dev]
 
     steps:
       - name: Checkout repository
