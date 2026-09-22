@@ -182,7 +182,7 @@ fi</code></pre>
   ※ <code>BACKEND_ENV_FILE</code> / <code>COMPOSE_ENV_FILE</code> は同 workflow 47-71 行で定義済みの変数。dev leg の既存置換(<code>s/dev-abc123def/develop/g</code>・82 行)は実在タグへの置換なので<b>そのまま正しい</b>(変更不要)。</li>
 </ol>
 
-<div class="step-head">Step 3: compose の修正(G-6 / G-10 / G-12) <span class="tag ok">完了(2026-09-22) — name: booking-dev・uploads ボリューム稼働確認済み。<b>永続化テスト合格</b>(force-recreate 後も /app/uploads のファイルが残存)。残り: compose ファイルのコミットのみ</span></div>
+<div class="step-head">Step 3: compose の修正(G-6 / G-10 / G-12) <span class="tag ok">完了(2026-09-22) — name: booking-dev・uploads ボリューム稼働確認済み。<b>永続化テスト合格</b>(force-recreate 後も /app/uploads のファイルが残存)。compose ファイルは 5f2c39b でコミット済み</span></div>
 <p><span class="file">booking-deploy/compose/docker-compose.dev.yml</span> / <span class="file">compose/dev.compose.env.example</span></p>
 <ol>
   <li><b>プロジェクト名の明示</b>(G-12)。dev compose の先頭に追加:
