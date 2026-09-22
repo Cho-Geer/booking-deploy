@@ -65,3 +65,5 @@ desktop.ini
 *.njsproj
 *.sln
 *.sw?
+# Mimosa スキャン成果物(ネストした場所にも出現する)
+.mimosa/
