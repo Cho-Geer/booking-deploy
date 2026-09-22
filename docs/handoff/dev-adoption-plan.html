@@ -154,7 +154,7 @@ fi</code></pre>
   <li><b>完了条件(負試験)</b>: <code>verify-images.sh dev</code> を開始し、<b>待機ループの表示(⏳ 等待…)が出ている間</b>に別端末で対象コンテナを止める(<code>docker stop booking-backend-dev</code>、または postgres なら <code>docker stop booking-postgres-dev</code>)。スクリプトは起動済みサービスを <code>up -d</code> で再利用するため、<b>事前停止では失敗を注入できない</b>点に注意。タイムアウト後に非 0 で終了し、logs と down が実行されること。</li>
 </ol>
 
-<div class="step-head">Step 2: verify-images.yml の調整(G-3 / G-5 / G-7) <span class="tag p1">進捗: 部分適用 — matrix [dev](33 行)・paths env/**(push 側 19 行)済み・PR 側 paths と空値ガード(G-3)未</span></div>
+<div class="step-head">Step 2: verify-images.yml の調整(G-3 / G-5 / G-7) <span class="tag ok">完了(2026-09-22) — matrix [dev]・両 paths env/**・空値ガード 4 種(行頭 KEY=/行中パスワード欠損/compose 空値/残存プレースホルダ)すべて実装。CI green は push/PR 後に確認</span></div>
 <p><span class="file">booking-deploy/.github/workflows/verify-images.yml</span></p>
 <ol>
   <li><b>matrix を dev に一時限定</b>(G-5 対策)。32 行を:
@@ -182,7 +182,7 @@ fi</code></pre>
   ※ <code>BACKEND_ENV_FILE</code> / <code>COMPOSE_ENV_FILE</code> は同 workflow 47-71 行で定義済みの変数。dev leg の既存置換(<code>s/dev-abc123def/develop/g</code>・82 行)は実在タグへの置換なので<b>そのまま正しい</b>(変更不要)。</li>
 </ol>
 
-<div class="step-head">Step 3: compose の修正(G-6 / G-10 / G-12) <span class="tag p2">未着手(name:・uploads ボリュームとも 0 件)</span></div>
+<div class="step-head">Step 3: compose の修正(G-6 / G-10 / G-12) <span class="tag ok">完了(2026-09-22) — name: booking-dev・uploads ボリューム稼働確認済み。<b>永続化テスト合格</b>(force-recreate 後も /app/uploads のファイルが残存)。残り: compose ファイルのコミットのみ</span></div>
 <p><span class="file">booking-deploy/compose/docker-compose.dev.yml</span> / <span class="file">compose/dev.compose.env.example</span></p>
 <ol>
   <li><b>プロジェクト名の明示</b>(G-12)。dev compose の先頭に追加:
