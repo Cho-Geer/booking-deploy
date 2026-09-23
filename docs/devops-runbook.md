@@ -133,8 +133,8 @@ Booking 系统使用 Docker 镜像标签进行版本管理，支持快速回滚�
 4. **执行回滚部署**
 
    ```bash
-   cd deploy
-   ./scripts/deploy-dev.sh  # 或 deploy-prod.sh
+   cd booking-deploy
+   docker compose -f compose/docker-compose.dev.yml --env-file compose/dev.compose.env up -d
    ```
 
 5. **验证回滚**

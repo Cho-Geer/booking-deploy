@@ -19,8 +19,6 @@ booking-deploy/
 │       ├── backend.env.example
 │       └── frontend.env.example
 └── scripts/                   # 部署脚本
-    ├── deploy-dev.sh          # 开发环境部署脚本
-    ├── deploy-prod.sh         # 生产环境部署脚本
     └── verify-images.sh       # 镜像验证脚本
 ```
 
@@ -104,7 +102,7 @@ cp env/prod/frontend.env.example env/prod/frontend.env
 回滚到旧版本:
 1. 找到之前的提交标签(如 `main-abc123def`)
 2. 更新 `prod.compose.env` 文件中的镜像标签
-3. 重新运行部署脚本
+3. 使用更新后的配置重启服务: `docker compose -f compose/docker-compose.prod.yml --env-file compose/prod.compose.env up -d`
 
 ```bash
 # 回滚到特定提交
@@ -120,30 +118,32 @@ FRONTEND_IMAGE=docker.io/cho-geer/booking-frontend:main-previous-commit
 # 进入 booking-deploy 目录
 cd booking-deploy
 
-# 运行部署脚本
-./scripts/deploy-dev.sh
+# 启动开发环境
+docker compose -f compose/docker-compose.dev.yml --env-file compose/dev.compose.env up -d
 ```
 
-部署脚本将执行以下步骤:
-1. **检查环境变量文件**是否存在
-2. 从 Docker Hub **拉取最新镜像**
-3. **执行数据库迁移**(独立的迁移服务)
-4. **启动所有服务**(PostgreSQL、Redis、Backend、Frontend)
-5. 通过**健康检查**确认所有服务可用
-   - 后端健康端点: `http://localhost:3001/v1/health`
-   - 后端 Swagger: `http://localhost:3001/api/docs`
-   - 前端页面: `http://localhost:3000`
+`up -d` 的行为:
+1. **执行数据库迁移**(独立的迁移服务在 `up` 时自动运行)
+2. **启动所有服务**(PostgreSQL、Redis、Backend、Frontend)并在后台持续运行
+3. 通过**健康检查**等待依赖服务就绪后再启动后续服务
+
+如需在已有镜像的基础上更新到最新版本,请先执行 `pull`:
+```bash
+docker compose -f compose/docker-compose.dev.yml --env-file compose/dev.compose.env pull
+```
+
+启动后的确认入口:
+- 后端健康端点: `http://localhost:3001/v1/health`
+- 后端 Swagger: `http://localhost:3001/api/docs`
+- 前端页面: `http://localhost:3000`
+
+如需在一次性启动中完成镜像拉取、启动与健康验证,请使用验证脚本(验证完成后自动 `down`):
+```bash
+./scripts/verify-images.sh dev
+```
 
 ### 生产环境部署
-```bash
-cd booking-deploy
-./scripts/deploy-prod.sh
-```
-
-生产环境的部署流程与开发环境相同,但配置不同:
-- 使用不同的 Docker Compose 文件(`docker-compose.prod.yml`)
-- 使用不同的环境变量文件(`prod.compose.env`、`env/prod/`)
-- 可能存在不同的网络配置与资源限制
+生产环境(prod)不在当前范围内(已在计划书 §6 中暂缓)。恢复 prod 时,将重新定义生产部署流程。
 
 ## 服务架构
 
@@ -187,7 +187,7 @@ docker compose -f compose/docker-compose.prod.yml --env-file compose/prod.compos
 - **Redis**: Docker 健康检查使用 `redis-cli ping`
 
 ### 部署后验证
-部署脚本会自动验证:
+验证脚本 `./scripts/verify-images.sh dev` 会自动验证:
 1. 后端健康端点返回 `200 OK`
 2. Swagger UI 可访问
 3. 前端首页可访问
@@ -222,7 +222,7 @@ Error: P3009: migrate found failed migrations in the target database
 - 查看迁移日志
 
 #### 3. 健康检查失败
-部署脚本在 80 秒后超时。
+健康检查会等待依赖服务启动完成。
 **解决方案**:
 - 查看服务日志: `docker compose logs backend`
 - 检查数据库连接: `docker compose exec backend npm run prisma:deploy`
@@ -252,12 +252,12 @@ docker compose -f compose/docker-compose.dev.yml --env-file compose/dev.compose.
 
 ### 版本升级
 1. 在 `compose/dev.compose.env` 或 `compose/prod.compose.env` 中**更新镜像标签**
-2. **执行部署脚本**
+2. **重启服务**: `docker compose -f compose/docker-compose.dev.yml --env-file compose/dev.compose.env up -d`
 3. **验证新版本**的功能
 
 ### 回滚操作
 1. 在环境变量文件中**还原旧镜像标签**
-2. **执行部署脚本**
+2. **重启服务**: `docker compose -f compose/docker-compose.dev.yml --env-file compose/dev.compose.env up -d`
 3. **数据库前向兼容**: 确保旧版本应用能够兼容当前数据库 schema 工作
 
 ### 零停机部署(未来扩展)
@@ -306,7 +306,7 @@ jobs:
           key: ${{ secrets.PROD_SSH_KEY }}
           script: |
             cd /opt/booking-system/booking-deploy
-            ./scripts/deploy-prod.sh
+            docker compose -f compose/docker-compose.prod.yml --env-file compose/prod.compose.env up -d
 ```
 
 ### 审批流程

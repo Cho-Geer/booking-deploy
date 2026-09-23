@@ -19,8 +19,6 @@ booking-deploy/
 │       ├── backend.env.example
 │       └── frontend.env.example
 └── scripts/                   # デプロイスクリプト
-    ├── deploy-dev.sh          # 開発環境デプロイスクリプト
-    ├── deploy-prod.sh         # 本番環境デプロイスクリプト
     └── verify-images.sh       # イメージ検証スクリプト
 ```
 
@@ -104,7 +102,7 @@ cp env/prod/frontend.env.example env/prod/frontend.env
 以前のバージョンへロールバックするには:
 1. 以前のコミットタグ(例: `main-abc123def`)を確認
 2. `prod.compose.env` ファイル内のイメージタグを更新
-3. デプロイスクリプトを再実行
+3. 更新した設定でサービスを再起動: `docker compose -f compose/docker-compose.prod.yml --env-file compose/prod.compose.env up -d`
 
 ```bash
 # 特定のコミットへロールバック
@@ -120,30 +118,32 @@ FRONTEND_IMAGE=docker.io/cho-geer/booking-frontend:main-previous-commit
 # booking-deploy ディレクトリへ移動
 cd booking-deploy
 
-# デプロイスクリプトを実行
-./scripts/deploy-dev.sh
+# 開発環境を起動
+docker compose -f compose/docker-compose.dev.yml --env-file compose/dev.compose.env up -d
 ```
 
-デプロイスクリプトは以下の手順を実行します:
-1. **環境変数ファイルの存在をチェック**
-2. Docker Hub から**最新イメージを取得**
-3. **データベースマイグレーションを実行**(独立したマイグレーションサービス)
-4. **すべてのサービスを開始**(PostgreSQL、Redis、バックエンド、フロントエンド)
-5. **ヘルスチェック**ですべてのサービスが利用可能かを確認
-   - バックエンドヘルスエンドポイント: `http://localhost:3001/v1/health`
-   - バックエンド Swagger: `http://localhost:3001/api/docs`
-   - フロントエンドページ: `http://localhost:3000`
+`up -d` の動作:
+1. **データベースマイグレーションを実行**(独立したマイグレーションサービスが `up` 時に自動実行)
+2. **すべてのサービスを開始**(PostgreSQL、Redis、バックエンド、フロントエンド)し、バックグラウンドで起動し続けます
+3. **ヘルスチェック**で依存サービスの起動完了を待機してから、後続のサービスを起動します
+
+既存イメージを最新に更新してから起動する場合は、事前に `pull` を実行します:
+```bash
+docker compose -f compose/docker-compose.dev.yml --env-file compose/dev.compose.env pull
+```
+
+起動後の確認先:
+- バックエンドヘルスエンドポイント: `http://localhost:3001/v1/health`
+- バックエンド Swagger: `http://localhost:3001/api/docs`
+- フロントエンドページ: `http://localhost:3000`
+
+イメージ取得から起動・ヘルス検証までを一時的な起動でまとめて確認する場合は、検証スクリプトを使用します(検証完了後に自動で `down` します):
+```bash
+./scripts/verify-images.sh dev
+```
 
 ### 本番環境のデプロイ
-```bash
-cd booking-deploy
-./scripts/deploy-prod.sh
-```
-
-本番環境のデプロイ手順は開発環境と同じですが、設定が異なります:
-- 異なる Docker Compose ファイル(`docker-compose.prod.yml`)
-- 異なる環境変数ファイル(`prod.compose.env`、`env/prod/`)
-- ネットワーク構成やリソース制限が異なる可能性あり
+本番環境(prod)は現行スコープ外です(手順書 §6 で保留中)。prod を復活させる際に、本番デプロイ手順を改めて定義します。
 
 ## サービス構成
 
@@ -187,7 +187,7 @@ docker compose -f compose/docker-compose.prod.yml --env-file compose/prod.compos
 - **Redis**: Docker ヘルスチェックは `redis-cli ping` を使用
 
 ### デプロイ後の検証
-デプロイスクリプトは以下を自動検証します:
+検証スクリプト `./scripts/verify-images.sh dev` は以下を自動検証します:
 1. バックエンドのヘルスエンドポイントが `200 OK` を返すこと
 2. Swagger UI にアクセス可能であること
 3. フロントエンドのホームページにアクセス可能であること
@@ -222,7 +222,7 @@ Error: P3009: migrate found failed migrations in the target database
 - マイグレーションログを確認
 
 #### 3. ヘルスチェック失敗
-デプロイスクリプトは 80 秒でタイムアウトします。
+ヘルスチェックは依存サービスの起動完了を待機します。
 **解決策**:
 - サービスログを確認: `docker compose logs backend`
 - データベース接続を確認: `docker compose exec backend npm run prisma:deploy`
@@ -252,12 +252,12 @@ docker compose -f compose/docker-compose.dev.yml --env-file compose/dev.compose.
 
 ### バージョンアップグレード
 1. `compose/dev.compose.env` または `compose/prod.compose.env` の**イメージタグを更新**
-2. **デプロイスクリプトを実行**
+2. **サービスを再起動**: `docker compose -f compose/docker-compose.dev.yml --env-file compose/dev.compose.env up -d`
 3. 新バージョンの機能を**検証**
 
 ### ロールバック操作
 1. 環境変数ファイルの**古いイメージタグを復元**
-2. **デプロイスクリプトを実行**
+2. **サービスを再起動**: `docker compose -f compose/docker-compose.dev.yml --env-file compose/dev.compose.env up -d`
 3. **データベース前方互換性**: 古いバージョンのアプリが現在の DB スキーマで動作することを確認
 
 ### ゼロダウンタイムデプロイ(将来の拡張)
@@ -306,7 +306,7 @@ jobs:
           key: ${{ secrets.PROD_SSH_KEY }}
           script: |
             cd /opt/booking-system/booking-deploy
-            ./scripts/deploy-prod.sh
+            docker compose -f compose/docker-compose.prod.yml --env-file compose/prod.compose.env up -d
 ```
 
 ### 承認プロセス
