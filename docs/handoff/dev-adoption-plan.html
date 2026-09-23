@@ -34,9 +34,10 @@
 <body>
 
 <h1>booking-deploy dev 適用 実施手順 (Handoff)</h1>
-<p class="meta">作成日: 2026-09-22 / 更新日: 2026-09-23 / <b>rev.7(SF 関連の既知制限 2 件を解消・HEAD/PR 状態を現行化・G-6 を未実施へ修正)</b> / 根拠: 二重独立審査モード(審査者A: general-purpose・審査者B: high-precision・主会話 Gate 裁定済み)+ rev.3 以降は general-purpose 単独審査の反復(第2回で合格)<br>
+<p class="meta">作成日: 2026-09-22 / 更新日: 2026-09-23 / <b>rev.8(G-6 解消・Step 3 を完了化)</b> / 根拠: 二重独立審査モード(審査者A: general-purpose・審査者B: high-precision・主会話 Gate 裁定済み)+ rev.3 以降は general-purpose 単独審査の反復(第2回で合格)<br>
 スコープ: <b>dev 環境の適用のみ</b>。prod は後回し(§1.2)。</p>
 
+<div class="fix"><b>rev.8 変更点(G-6 解消・2026-09-23)</b>: <b>Step 3 を完了化</b> — <code>compose/dev.compose.env.example</code> のタグ説明コメントを実態(develop ブランチタグのみ・latest 定義無し・backend/migration=<code>develop-&lt;sha7&gt;</code>・frontend=<code>sha-&lt;sha7&gt;</code>)に修正(commit <code>60644d6</code>)。アンカー値 <code>dev-abc123def</code> と sed 置換は無変更(アンカー維持方針どおり)。最終形ブロック外の情報(ファイル先頭タイトル行・POSTGRES パスワード一致の注意書き)は保持。併せて行番号注記 82→84(verify-images.yml の <code>s/dev-abc123def/develop/g</code>)を修正。</div>
 <div class="fix"><b>rev.7 変更点(監査反映・2026-09-23)</b>: <b>SF 関連の既知制限 2 件を解消</b> — 制限 2(<code>NEXT_PUBLIC_SF_SITE_URL</code> のビルド時焼き込み)は frontend PR #25/#26(frontend develop=<code>7e0f83a</code>・稼働イメージ <code>8ca1f296</code> の配信 chunk に URL 実在・実ブラウザで「Salesforce 管理ワークベンチ」ボタンの有効化を確認)で解消、制限 3(SF 鍵マウント)は commit <code>806512a</code> の <code>../certs:/app/certs</code> 定義 + <code>env/dev/backend.env</code> 42-49 行の <code>SF_*</code>/<code>INTEGRATION_TOKEN</code> 実値投入で解消。<b>HEAD/PR 状態を現行化</b>(backend <code>68d708e</code>・frontend <code>7e0f83a</code>・booking-deploy feat/dev-adoption <code>806512a</code>(develop に 17 コミット先行)・PR #5 は OPEN/REVIEW_REQUIRED/BLOCKED)。<b>Step 3 の G-6 を未実施化</b>(example のコメントが旧文言のまま)。§7 の行番号注記を現行基準へ更新・§1.4 に LF 未正規化(CRLF 残存)の但し書きを追加。</div>
 <div class="fix"><b>rev.6 変更点(方針の最終統一)</b>: <code>compose/dev.compose.env</code> を <code>:develop</code> 可変タグで 1 回作成する方式に決定(<b>作成済み</b>・gitignore 対象)。作成後の保守はゼロで、pull(98 行)が毎回最新 digest を取得するため「毎回最新イメージ」の目標は維持。これにより <code>DOCKER_HUB_USER</code> 環境変数は<b>ローカル実行では不要</b>(新規 checkout でのみ Step 1-3 の注入経路が発火)。prod 側は作成しない(§6)。</div>
 
@@ -95,7 +96,7 @@
   <tr><td>G-3</td><td>secrets 未設定時に空値が静かに注入され、health は緑のままログイン時に全滅(空は行頭 <code>KEY=</code> と行中 <code>//:@</code> の 2 形態がある)</td><td><span class="tag p0">P0</span>(条件付き)</td><td>.github/workflows/verify-images.yml:77-89</td></tr>
   <tr><td>G-4</td><td>ローカルスクリプトが <code>{{DOCKER_HUB_USER}}</code> を置換しない+置換先タグ <code>dev</code> が実在しない → ローカル実行は必ず pull 失敗</td><td><span class="tag p1">P1</span></td><td>scripts/verify-images.sh:44-51</td></tr>
   <tr><td>G-5</td><td>CI の prod leg が <code>main-abc123def→develop</code> 置換で develop 成果物を検証(prod 保証にならない)</td><td><span class="tag p1">P1</span></td><td>.github/workflows/verify-images.yml:88</td></tr>
-  <tr><td>G-6</td><td>dev.compose.env.example のコメント(branch 名 dev/main、latest=main)が実態(develop、latest 定義無し)と不一致。タグ例 <code>dev-abc123def</code> は sed アンカーとして機能</td><td><span class="tag p1">P1</span></td><td>compose/dev.compose.env.example:2-19</td></tr>
+  <tr><td>G-6</td><td>dev.compose.env.example のコメント(branch 名 dev/main、latest=main)が実態(develop、latest 定義無し)と不一致。タグ例 <code>dev-abc123def</code> は sed アンカーとして機能。<b>【解消済み: Step 3 のコメント修正(commit 60644d6)により解消】</b></td><td><span class="tag p1">P1</span></td><td>compose/dev.compose.env.example:2-19</td></tr>
   <tr><td>G-7</td><td><code>env/**</code> が verify-images.yml の paths に無く、env 変更が実起動検証をトリガーしない</td><td><span class="tag p1">P1</span></td><td>.github/workflows/verify-images.yml:8-19</td></tr>
   <tr><td>G-8</td><td>deploy env に新機能変数が欠落: <code>MAIL_*</code> / <code>INTEGRATION_TOKEN</code> / <code>RETENTION_*</code> / <code>SF_*</code></td><td><span class="tag p1">P1</span></td><td>env/dev/backend.env.example</td></tr>
   <tr><td>G-9</td><td>死んだ変数 8 個(<code>DB_*</code> 5個・<code>LOG_LEVEL/LOG_FILE/HEALTHCHECK_TIMEOUT_MS</code>)と frontend の <code>NEXT_PUBLIC_WS_URL/INSTANCE_NAME</code>(いずれもアプリ未参照)</td><td><span class="tag p2">P2</span></td><td>env/dev/backend.env.example:5-9,26-28 / frontend.env.example:3-4</td></tr>
@@ -180,10 +181,10 @@ fi
 if grep -qE 'replace-with-a-real|change-me' "${BACKEND_ENV_FILE}"; then
   echo "::error::Placeholder remains after injection"; exit 1
 fi</code></pre>
-  ※ <code>BACKEND_ENV_FILE</code> / <code>COMPOSE_ENV_FILE</code> は同 workflow 47-71 行で定義済みの変数。dev leg の既存置換(<code>s/dev-abc123def/develop/g</code>・82 行)は実在タグへの置換なので<b>そのまま正しい</b>(変更不要)。</li>
+  ※ <code>BACKEND_ENV_FILE</code> / <code>COMPOSE_ENV_FILE</code> は同 workflow 47-71 行で定義済みの変数。dev leg の既存置換(<code>s/dev-abc123def/develop/g</code>・84 行)は実在タグへの置換なので<b>そのまま正しい</b>(変更不要)。</li>
 </ol>
 
-<div class="step-head">Step 3: compose の修正(G-6 / G-10 / G-12) <span class="tag p1">一部完了(2026-09-23 更新)</span> — G-10 / G-12 は完了(2026-09-22): name: booking-dev・uploads ボリューム稼働確認済み。<b>永続化テスト合格</b>(force-recreate 後も /app/uploads のファイルが残存)。compose ファイルは 5f2c39b でコミット済み。<b>G-6 は未実施</b>: <code>compose/dev.compose.env.example</code> のコメントが旧文言(分支标签: dev, main / latest: main 分支)のまま。実態は develop タグのみ・latest タグ無し。コメント修正で完了化可能</div>
+<div class="step-head">Step 3: compose の修正(G-6 / G-10 / G-12) <span class="tag ok">完了(2026-09-23)</span> — G-10 / G-12 は完了(2026-09-22・commit 5f2c39b): name: booking-dev・uploads ボリューム稼働確認済み・<b>永続化テスト合格</b>(force-recreate 後も /app/uploads のファイルが残存)。G-6 は完了(2026-09-23・commit 60644d6): example のコメントを実態に修正(アンカー値 <code>dev-abc123def</code> は維持)</div>
 <p><span class="file">booking-deploy/compose/docker-compose.dev.yml</span> / <span class="file">compose/dev.compose.env.example</span></p>
 <ol>
   <li><b>プロジェクト名の明示</b>(G-12)。dev compose の先頭に追加:
@@ -195,7 +196,7 @@ fi</code></pre>
     volumes:
       - booking_uploads_dev:/app/uploads</code></pre>
   トップレベル volumes に <code>booking_uploads_dev:</code> を追加。</li>
-  <li><b>【未実施(2026-09-23 確認)】dev.compose.env.example のコメントを実態に合わせ修正</b>(G-6)。方針は <b>「アンカー維持」</b>: 既定値の <code>dev-abc123def</code> は verify-images.yml:82 と verify-images.sh(Step 1-3 修正後)の sed アンカーとして機能しているため、<b>値はそのまま残し、コメントと説明だけ実態に合わせる</b>。最終形:
+  <li><b>【実施済み(2026-09-23・commit 60644d6)】dev.compose.env.example のコメントを実態に合わせ修正</b>(G-6)。方針は <b>「アンカー維持」</b>: 既定値の <code>dev-abc123def</code> は verify-images.yml:84 と verify-images.sh(Step 1-3 修正後)の sed アンカーとして機能しているため、<b>値はそのまま残し、コメントと説明だけ実態に合わせる</b>。最終形:
 <pre><code># 镜像工作流会自动生成以下类型的标签（实态）：
 # - 分支标签: develop（可变，dev 验证用）
 # - 提交标签: develop-&lt;sha7&gt;（backend/migration）/ sha-&lt;sha7&gt;（frontend，不推荐用于生产以外）
