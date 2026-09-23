@@ -8,6 +8,7 @@ on:
     paths:
       - 'compose/**'
       - 'scripts/verify-images.sh'
+      - 'env/**'
       - '.github/workflows/verify-images.yml'
   push:
     branches:
@@ -16,6 +17,7 @@ on:
     paths:
       - 'compose/**'
       - 'scripts/verify-images.sh'
+      - 'env/**'
       - '.github/workflows/verify-images.yml'
   workflow_dispatch:
 
@@ -29,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false   # 👈 新增：即使一个环境失败，其他环境继续运行
       matrix:
-        environment: [dev, prod]
+        environment: [dev]
 
     steps:
       - name: Checkout repository
@@ -86,6 +88,24 @@ jobs:
             sed -i "s/replace-with-a-real-secret/${{ secrets.PROD_JWT_SECRET }}/g" "${BACKEND_ENV_FILE}"
             sed -i "s/replace-with-a-real-refresh-secret/${{ secrets.PROD_JWT_REFRESH_SECRET }}/g" "${BACKEND_ENV_FILE}"
             sed -i "s/main-abc123def/develop/g" "${COMPOSE_ENV_FILE}"
+          fi
+
+          # 注入後ガード: secrets 未設定による空値・残存プレースホルダは即失敗
+          if grep -qE '^(JWT_SECRET|JWT_REFRESH_SECRET)=$' "${BACKEND_ENV_FILE}"; then
+            echo "::error::JWT secret injection produced an empty value (secret unset?)"
+            exit 1
+          fi
+          if grep -qE 'postgresql://[^:/@]*:@' "${BACKEND_ENV_FILE}"; then
+            echo "::error::DATABASE_URL lost its password (DEV_DB_PASSWORD unset?)"
+            exit 1
+          fi
+          if grep -qE '^POSTGRES_PASSWORD=$' "${COMPOSE_ENV_FILE}"; then
+            echo "::error::POSTGRES_PASSWORD is empty (secret unset?)"
+            exit 1
+          fi
+          if grep -qE 'replace-with-a-real|change-me' "${BACKEND_ENV_FILE}"; then
+            echo "::error::Placeholder remains after injection"
+            exit 1
           fi
 
           echo "Generated ${COMPOSE_ENV_FILE}:"

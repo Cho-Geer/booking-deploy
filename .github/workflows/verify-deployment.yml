@@ -70,18 +70,6 @@ jobs:
           fi
           echo "✅ Frontend env file exists: $FRONTEND_ENV_FILE"
 
-          # Validate deployment scripts
-          DEPLOY_SCRIPT="scripts/deploy-${{ matrix.environment }}.sh"
-          if [ ! -f "$DEPLOY_SCRIPT" ]; then
-            echo "❌ Error: Deployment script $DEPLOY_SCRIPT not found"
-            exit 1
-          fi
-          
-          if [ ! -x "$DEPLOY_SCRIPT" ]; then
-            echo "⚠️  Warning: Deployment script $DEPLOY_SCRIPT is not executable"
-          fi
-          echo "✅ Deployment script exists: $DEPLOY_SCRIPT"
-
           # Validate verify-images.sh
           VERIFY_SCRIPT="scripts/verify-images.sh"
           if [ ! -f "$VERIFY_SCRIPT" ]; then

@@ -1,0 +1,5 @@
+# シェルスクリプトは常に LF(CRLF だとシェバンが壊れ「No such file or directory」になるため)
+*.sh text eol=lf
+
+# 環境変数の example も LF を推奨(CI の行末アンカー判定を安定させる)
+*.example text eol=lf
