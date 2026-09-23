@@ -34,9 +34,10 @@
 <body>
 
 <h1>booking-deploy dev 適用 実施手順 (Handoff)</h1>
-<p class="meta">作成日: 2026-09-22 / <b>rev.6(compose env も 1 回作成方式に方針統一・作成済み)</b> / 根拠: 二重独立審査モード(審査者A: general-purpose・審査者B: high-precision・主会話 Gate 裁定済み)+ rev.3 以降は general-purpose 単独審査の反復(第2回で合格)<br>
+<p class="meta">作成日: 2026-09-22 / 更新日: 2026-09-23 / <b>rev.7(SF 関連の既知制限 2 件を解消・HEAD/PR 状態を現行化・G-6 を未実施へ修正)</b> / 根拠: 二重独立審査モード(審査者A: general-purpose・審査者B: high-precision・主会話 Gate 裁定済み)+ rev.3 以降は general-purpose 単独審査の反復(第2回で合格)<br>
 スコープ: <b>dev 環境の適用のみ</b>。prod は後回し(§1.2)。</p>
 
+<div class="fix"><b>rev.7 変更点(監査反映・2026-09-23)</b>: <b>SF 関連の既知制限 2 件を解消</b> — 制限 2(<code>NEXT_PUBLIC_SF_SITE_URL</code> のビルド時焼き込み)は frontend PR #25/#26(frontend develop=<code>7e0f83a</code>・稼働イメージ <code>8ca1f296</code> の配信 chunk に URL 実在・実ブラウザで「Salesforce 管理ワークベンチ」ボタンの有効化を確認)で解消、制限 3(SF 鍵マウント)は commit <code>806512a</code> の <code>../certs:/app/certs</code> 定義 + <code>env/dev/backend.env</code> 42-49 行の <code>SF_*</code>/<code>INTEGRATION_TOKEN</code> 実値投入で解消。<b>HEAD/PR 状態を現行化</b>(backend <code>68d708e</code>・frontend <code>7e0f83a</code>・booking-deploy feat/dev-adoption <code>806512a</code>(develop に 17 コミット先行)・PR #5 は OPEN/REVIEW_REQUIRED/BLOCKED)。<b>Step 3 の G-6 を未実施化</b>(example のコメントが旧文言のまま)。§7 の行番号注記を現行基準へ更新・§1.4 に LF 未正規化(CRLF 残存)の但し書きを追加。</div>
 <div class="fix"><b>rev.6 変更点(方針の最終統一)</b>: <code>compose/dev.compose.env</code> を <code>:develop</code> 可変タグで 1 回作成する方式に決定(<b>作成済み</b>・gitignore 対象)。作成後の保守はゼロで、pull(98 行)が毎回最新 digest を取得するため「毎回最新イメージ」の目標は維持。これにより <code>DOCKER_HUB_USER</code> 環境変数は<b>ローカル実行では不要</b>(新規 checkout でのみ Step 1-3 の注入経路が発火)。prod 側は作成しない(§6)。</div>
 
 <div class="fix"><b>rev.5 変更点(方針決定の反映)</b>: <code>compose/dev.compose.env</code> は<b>手維持しない</b>(2026-09-22 決定)— 標準は「スクリプト生成 + seds + <code>DOCKER_HUB_USER</code> 環境変数」ルートで、<code>:develop</code> 可変タグにより<b>毎回最新イメージでオーケストレート</b>する。<b>(※この方式は rev.6 で「1 回作成方式」に統合されました)</b>。手維持対象は <code>env/dev/backend.env</code> / <code>frontend.env</code>(静的な secrets・URL のみ)に限定。Step 1-3 の <code>:?</code> ガードを注入分岐内に移動(スクリプト先頭の無条件チェックは §1.4 と不整合のため)。</div>
@@ -49,9 +50,9 @@
 <h3>1.1 ブランチ実態(実測済み)</h3>
 <table>
   <tr><th>リポジトリ</th><th>存在ブランチ(実測)</th><th>HEAD</th></tr>
-  <tr><td>booking-backend</td><td>develop(+マージ済み feature)</td><td><code>d8e3522</code></td></tr>
-  <tr><td>booking-frontend</td><td>develop(+マージ済み feature)</td><td><code>8596eff</code></td></tr>
-  <tr><td>booking-deploy</td><td>develop <b>+ origin/master が実在</b>(既定=develop)</td><td>develop</td></tr>
+  <tr><td>booking-backend</td><td>develop(+マージ済み feature)</td><td><code>68d708e</code>(PR #40 マージ済み)</td></tr>
+  <tr><td>booking-frontend</td><td>develop(+マージ済み feature)</td><td><code>7e0f83a</code>(PR #26 マージ済み)</td></tr>
+  <tr><td>booking-deploy</td><td>develop <b>+ origin/master が実在</b>(既定=develop)</td><td><code>806512a</code>(feat/dev-adoption・develop に 17 コミット先行 / <b>PR #5: OPEN・REVIEW_REQUIRED・BLOCKED</b>)</td></tr>
 </table>
 <p><b>2 つのアプリ リポジトリには master / main は存在しない</b>(booking-deploy には origin/master が残存している点に注意 — workflow の branches フィルタは deploy リポジトリ上では生きている)。したがって dev 適用にあたり、アプリ側の成果物タグは <code>develop</code>(可変ブランチタグ・3 サービス共通で生成される)と <code>develop-&lt;sha&gt;</code>(backend/migration の不変タグ)・<code>sha-&lt;sha&gt;</code>(frontend の不変タグ)のみが実在する前提とする。</p>
 
@@ -72,15 +73,15 @@
 <p style="color:#1a7f37;font-weight:700;">進捗(2026-09-22): <b>ゴール 1〜4 すべて達成 ✓</b>(負試験 2 経路合格 / CI verify-images dev leg green = PR #5・1m39s / ローカル通し実行成功 / seed 後に実メール受信・ログイン成功)。</p>
 
 <h3>1.4 ローカル運用モデル(実値 env ファイルの手維持)</h3>
-<p><b>方針</b>: 実値は gitignore 対象の実ファイルに<b>1 回だけ作成</b>し、example はプレースホルダのままコミットする。CI への実値供給は従来どおり GitHub secrets 注入に任せる。手作成の対象は <code>env/dev/backend.env</code> / <code>frontend.env</code> と <code>compose/dev.compose.env</code>(rev.6 決定)。compose env は <code>:develop</code> 可変タグで作成するため<b>作成後の保守はゼロ</b>で、pull(98 行)が毎回最新 digest を取得します。この分業は既存のスクリプト構造がそのまま保証している:</p>
+<p><b>方針</b>: 実値は gitignore 対象の実ファイルに<b>1 回だけ作成</b>し、example はプレースホルダのままコミットする。CI への実値供給は従来どおり GitHub secrets 注入に任せる。手作成の対象は <code>env/dev/backend.env</code> / <code>frontend.env</code> と <code>compose/dev.compose.env</code>(rev.6 決定)。compose env は <code>:develop</code> 可変タグで作成するため<b>作成後の保守はゼロ</b>で、pull(103 行目)が毎回最新 digest を取得します。この分業は既存のスクリプト構造がそのまま保証している:</p>
 <table>
   <tr><th>経路</th><th>実値ファイルの扱い</th><th>根拠</th></tr>
-  <tr><td>ローカル(verify-images.sh)</td><td>実値ファイルが<b>存在すれば一切触らない</b>(cp も sed もスキップ)= 手維持が最優先。無ければ example から生成+既定値注入</td><td>scripts/verify-images.sh:33-59(ループ・sed は未存在分岐内)/ 62-82(generate_app_env)</td></tr>
+  <tr><td>ローカル(verify-images.sh)</td><td>実値ファイルが<b>存在すれば一切触らない</b>(cp も sed もスキップ)= 手維持が最優先。無ければ example から生成+既定値注入</td><td>scripts/verify-images.sh:33-61(ループ・sed は未存在分岐内)/ 64-87(generate_app_env)</td></tr>
   <tr><td>CI(verify-images.yml)</td><td>checkout に実値ファイルは存在しない(gitignore)ため、毎回 example から生成+ secrets 注入。ローカルの手維持値が CI に漏れることはない</td><td>.gitignore:3-4(<code>compose/*.env</code>・<code>env/*/*.env</code>)/ verify-images.yml:47-89</td></tr>
-  <tr><td>compose env(rev.6 決定)</td><td><b>1 回だけ作成する</b>(作成済み・2026-09-22): 実名前空間(<code>zhaogeyinzuo</code>)+ <code>:develop</code> 可変タグ。作成後の保守はゼロで、存在するため注入分岐は未発動(<code>DOCKER_HUB_USER</code> 不要)。pull(98 行)が毎回最新 digest を取得 = <b>毎回最新イメージ</b>。ユーザー名変更時・特定コミット検証時のみ手編集(一時的に不変タグ <code>develop-&lt;sha7&gt;</code> / <code>sha-&lt;sha7&gt;</code> へ書き換え、検証後は <code>develop</code> に戻す)</td><td>scripts/verify-images.sh:33-59・98・161 / compose/dev.compose.env</td></tr>
+  <tr><td>compose env(rev.6 決定)</td><td><b>1 回だけ作成する</b>(作成済み・2026-09-22): 実名前空間(<code>zhaogeyinzuo</code>)+ <code>:develop</code> 可変タグ。作成後の保守はゼロで、存在するため注入分岐は未発動(<code>DOCKER_HUB_USER</code> 不要)。pull(103 行目)が毎回最新 digest を取得 = <b>毎回最新イメージ</b>。ユーザー名変更時・特定コミット検証時のみ手編集(一時的に不変タグ <code>develop-&lt;sha7&gt;</code> / <code>sha-&lt;sha7&gt;</code> へ書き換え、検証後は <code>develop</code> に戻す)</td><td>scripts/verify-images.sh:33-61・103 / compose/dev.compose.env</td></tr>
 </table>
 <ol>
-  <li><b>実値ファイル(作成済み・2026-09-22)</b>: <code>env/dev/backend.env</code> と <code>env/dev/frontend.env</code>。値は各アプリのローカル env(<code>booking-backend/.env.development</code> / <code>booking-frontend/.env.development</code>)由来で、<code>DATABASE_URL</code> のホスト部のみ compose ネットワーク用に <code>postgres</code> へ変更済み。frontend 側は plan の目標状態に合わせ <code>NODE_ENV</code> / 未使用変数を除き <code>NEXT_PUBLIC_SF_SITE_URL</code> を含む(G-13・G-9 の実値側先行適用)。backend.env にはさらに <code>RETENTION_*</code>(<code>DRY_RUN=true</code>: コード既定 false からの意図的な安全側上書き)と <code>FRONTEND_URLS</code> への 127.0.0.1 追加を反映済み。両ファイルは LF 正規化済み。<b>MAIL_* は 2026-09-22 に実値へ反映済み</b>(オプション A: ソース env の実 SMTP 設定を転記、実メール受信・ログイン成功まで確認済み)。残る未反映は <code>SF_*</code> / <code>INTEGRATION_TOKEN</code> の新設分です。なお緊急の反映は不要です(<code>SF_*</code> は既知制限 3 のとおり未設定でも no-op で安全。example を更新する際に揃えれば十分)。</li>
+  <li><b>実値ファイル(作成済み・2026-09-22)</b>: <code>env/dev/backend.env</code> と <code>env/dev/frontend.env</code>。値は各アプリのローカル env(<code>booking-backend/.env.development</code> / <code>booking-frontend/.env.development</code>)由来で、<code>DATABASE_URL</code> のホスト部のみ compose ネットワーク用に <code>postgres</code> へ変更済み。frontend 側は plan の目標状態に合わせ <code>NODE_ENV</code> / 未使用変数を除き <code>NEXT_PUBLIC_SF_SITE_URL</code> を含む(G-13・G-9 の実値側先行適用)。backend.env にはさらに <code>RETENTION_*</code>(<code>DRY_RUN=true</code>: コード既定 false からの意図的な安全側上書き)と <code>FRONTEND_URLS</code> への 127.0.0.1 追加を反映済み。両ファイルは LF 正規化済み(但し <code>backend.env</code> の SF/SEED 追加分(43-49・52-53 行)は CRLF 残存 — LF 正規化は別途対応)。<b>MAIL_* は 2026-09-22 に実値へ反映済み</b>(オプション A: ソース env の実 SMTP 設定を転記、実メール受信・ログイン成功まで確認済み)。<code>SF_*</code> / <code>INTEGRATION_TOKEN</code> の新設分も 2026-09-22 に実値側へ投入済みです(42-49 行・<code>SF_PROJECTION_ENABLED=true</code>。既知制限 3 は解消済み)。</li>
   <li><b>ルール</b>: (a) example は直接編集しない(プレースホルダ維持)。(b) 実値の変更は手維持ファイルのみに加え、CI と値を共有する場合は GitHub secrets への反映を忘れない。(c) compose env は 1 回作成済み(rev.6)のため、ローカル実行に <code>DOCKER_HUB_USER</code> 環境変数は<b>不要</b>です。新規 checkout など未作成の環境では、スクリプトの注入分岐(Step 1-3)が変数を要求します(<code>setx DOCKER_HUB_USER &lt;user&gt;</code> — ユーザー名であり秘密ではないため設定ファイルへの格納可)。</li>
   <li><b>最重要の同期ポイント</b>: <code>backend.env</code> の <code>DATABASE_URL</code> 内パスワードと、<code>dev.compose.env</code> の <code>POSTGRES_PASSWORD</code> は<b>同一値を手動同期</b>する(ズレると backend は起動するが DB 接続で失敗)。両ファイルへ相互参照のコメントを入れること(backend.env 側は挿入済み、example 側も rev.4 で追記)。なお現在の dev DB パスワードは example 既定値(リポジトリ内に既に存在する公開値)と同一であり、それ自体は秘密ではない。変更する場合は backend.env・compose env・GitHub secrets(<code>DEV_POSTGRES_PASSWORD</code>/<code>DEV_DB_PASSWORD</code>)を<b>同時に</b>更新する。</li>
   <li><b>禁止</b>: 実値を example に書く / <code>.gitignore</code> 3-4 行の緩和 / 実シークレット(<code>DOCKERHUB_TOKEN</code>・<code>DEV_JWT_SECRET</code> 等)をシェル rc ファイルに平文配置。</li>
@@ -103,15 +104,15 @@
   <tr><td>G-12</td><td>dev/prod compose に <code>name:</code> が無くプロジェクト名が衝突(<code>down -v</code> が相手側を破壊し得る)</td><td><span class="tag p1">P1</span></td><td>compose/docker-compose.dev.yml</td></tr>
   <tr><td>G-13</td><td>frontend env の <code>NODE_ENV=development</code> がイメージ既定(production)を上書き</td><td><span class="tag p2">P2</span></td><td>env/dev/frontend.env.example:1</td></tr>
   <tr><td>G-14</td><td><code>FRONTEND_URLS</code> が <code>localhost</code> のみ(127.0.0.1 アクセスで CORS 拒否)</td><td><span class="tag p2">P2</span></td><td>env/dev/backend.env.example:19</td></tr>
-  <tr><td>G-15</td><td>build-all-images スクリプトのイメージ命名(<code>booking-system-*</code>)が CI・compose(<code>booking-backend</code> 等)と分断・ユーザー名硬結接</td><td><span class="tag p2">P2</span>(任意)</td><td>scripts/build-all-images.sh:7,64-66</td></tr>
+  <tr><td>G-15</td><td>build-all-images スクリプトのイメージ命名(<code>booking-system-*</code>)が CI・compose(<code>booking-backend</code> 等)と分断・ユーザー名硬結接。<b>【解消済み: Step 6 の build-all スクリプト削除(commit 2bc4f34)により解消】</b></td><td><span class="tag p2">P2</span>(任意)</td><td>scripts/build-all-images.sh:7,64-66</td></tr>
   <tr><td>G-16</td><td>frontend env に対して backend 用 sed(<code>5382</code>/<code>replace-with-a-real-*</code>)が no-op で走る死コード</td><td><span class="tag p2">P2</span></td><td>scripts/verify-images.sh:73-85</td></tr>
 </table>
 
 <div class="limit"><b>既知の制限として dev では許容するもの(修正しない)</b>:
 <ol>
   <li><code>NEXT_PUBLIC_API_URL</code> はビルド時焼き込みのため、現行イメージでは fallback <code>http://localhost:3001/v1</code> で動作。dev 用途(同一ホストのブラウザからアクセス)ではこれが正しい値なので実害なし。→ アプリ側 Dockerfile の ARG/build-args 改修は prod 復活時の必須要件として §6 に記載。</li>
-  <li><code>NEXT_PUBLIC_SF_SITE_URL</code> も同根で現行イメージには反映されない(SF 入口リンクは無効表示のまま)。dev では許容。</li>
-  <li>SF 鍵ファイル(certs/)の compose マウントは未定義。実装は <code>SF_PROJECTION_ENABLED !== 'true'</code> で no-op のため<b>未設定でも安全</b>(明示は example 側 Step 4 で実施。実値側は未設定のままで可)。</li>
+  <li><b>【解消済み(2026-09-23)】</b><code>NEXT_PUBLIC_SF_SITE_URL</code> は frontend PR #25/#26 のマージ(develop=<code>7e0f83a</code>)で Dockerfile ARG + frontend-image.yml の build-args(<code>vars.NEXT_PUBLIC_SF_SITE_URL</code>)によるビルド時焼き込みに対応。稼働イメージ(<code>8ca1f296</code>)の配信 chunk に URL 実在を確認し、2026-09-23 に実ブラウザで「Salesforce 管理ワークベンチ」ボタンの有効化を確認済み。</li>
+  <li><b>【解消済み(2026-09-23)】</b>SF 鍵ファイル(certs/)は commit <code>806512a</code> で compose に <code>../certs:/app/certs</code> マウントを定義済み。実値側は <code>env/dev/backend.env</code> 42-49 行に <code>SF_*</code>/<code>INTEGRATION_TOKEN</code> 実値と <code>SF_PROJECTION_ENABLED=true</code> を投入済み(example は <code>false</code> のまま = 鍵をマウントしない CI 用の安全側)。</li>
   <li>backend env の <code>NODE_ENV=development</code> は<b>意図的に維持する</b>(backend イメージ既定は production・Dockerfile:28。dev 適用ではアプリを開発モードで動かす意図があるため除去しない。frontend だけ除去する理由は G-13 参照: <code>next start</code> による production ビルド配信との不整合を避けるため)。</li>
 </ol></div>
 
@@ -182,7 +183,7 @@ fi</code></pre>
   ※ <code>BACKEND_ENV_FILE</code> / <code>COMPOSE_ENV_FILE</code> は同 workflow 47-71 行で定義済みの変数。dev leg の既存置換(<code>s/dev-abc123def/develop/g</code>・82 行)は実在タグへの置換なので<b>そのまま正しい</b>(変更不要)。</li>
 </ol>
 
-<div class="step-head">Step 3: compose の修正(G-6 / G-10 / G-12) <span class="tag ok">完了(2026-09-22) — name: booking-dev・uploads ボリューム稼働確認済み。<b>永続化テスト合格</b>(force-recreate 後も /app/uploads のファイルが残存)。compose ファイルは 5f2c39b でコミット済み</span></div>
+<div class="step-head">Step 3: compose の修正(G-6 / G-10 / G-12) <span class="tag p1">一部完了(2026-09-23 更新)</span> — G-10 / G-12 は完了(2026-09-22): name: booking-dev・uploads ボリューム稼働確認済み。<b>永続化テスト合格</b>(force-recreate 後も /app/uploads のファイルが残存)。compose ファイルは 5f2c39b でコミット済み。<b>G-6 は未実施</b>: <code>compose/dev.compose.env.example</code> のコメントが旧文言(分支标签: dev, main / latest: main 分支)のまま。実態は develop タグのみ・latest タグ無し。コメント修正で完了化可能</div>
 <p><span class="file">booking-deploy/compose/docker-compose.dev.yml</span> / <span class="file">compose/dev.compose.env.example</span></p>
 <ol>
   <li><b>プロジェクト名の明示</b>(G-12)。dev compose の先頭に追加:
@@ -194,7 +195,7 @@ fi</code></pre>
     volumes:
       - booking_uploads_dev:/app/uploads</code></pre>
   トップレベル volumes に <code>booking_uploads_dev:</code> を追加。</li>
-  <li><b>dev.compose.env.example のコメントを実態に合わせ修正</b>(G-6)。方針は <b>「アンカー維持」</b>: 既定値の <code>dev-abc123def</code> は verify-images.yml:82 と verify-images.sh(Step 1-3 修正後)の sed アンカーとして機能しているため、<b>値はそのまま残し、コメントと説明だけ実態に合わせる</b>。最終形:
+  <li><b>【未実施(2026-09-23 確認)】dev.compose.env.example のコメントを実態に合わせ修正</b>(G-6)。方針は <b>「アンカー維持」</b>: 既定値の <code>dev-abc123def</code> は verify-images.yml:82 と verify-images.sh(Step 1-3 修正後)の sed アンカーとして機能しているため、<b>値はそのまま残し、コメントと説明だけ実態に合わせる</b>。最終形:
 <pre><code># 镜像工作流会自动生成以下类型的标签（实态）：
 # - 分支标签: develop（可变，dev 验证用）
 # - 提交标签: develop-&lt;sha7&gt;（backend/migration）/ sha-&lt;sha7&gt;（frontend，不推荐用于生产以外）
@@ -242,7 +243,7 @@ SF_PRIVATE_KEY_PATH=
 RETENTION_ENABLED=true
 RETENTION_DRY_RUN=true
 RETENTION_DAYS=30</code></pre>
-  ※ <code>INTEGRATION_TOKEN</code> を空のままにすると該当 API が 500 になるため、dev 用ダミー値を入れる。 <code>SF_PROJECTION_ENABLED=false</code> は鍵マウント未定義の安全側固定(§2 の既知制限 3)。</li>
+  ※ <code>INTEGRATION_TOKEN</code> を空のままにすると該当 API が 500 になるため、dev 用ダミー値を入れる。 <code>SF_PROJECTION_ENABLED=false</code> は example/CI 側の安全側(実値側は <code>true</code> 投入済み・鍵マウントは compose 定義済み。§2 既知制限 3 は解消済み)。</li>
   <li><b>FRONTEND_URLS に 127.0.0.1 を追加</b>(G-14)。値は<b>カンマ直後に空白を入れない</b>(backend の HTTP 側は <code>split(',').map(trim)</code> だが WS 側は <code>split(',')</code> のみで trim しない・websocket.gateway.ts:76):
 <pre><code>FRONTEND_URL=http://localhost:3000
 FRONTEND_URLS=http://localhost:3000,http://127.0.0.1:3000</code></pre>
@@ -253,9 +254,8 @@ FRONTEND_URLS=http://localhost:3000,http://127.0.0.1:3000</code></pre>
 <ol>
   <li><b>NODE_ENV 行を削除</b>(G-13): イメージ既定(production)を使用。production ビルドを production モードで配信させるため。</li>
   <li><b>未使用変数を削除</b>(G-9): <code>NEXT_PUBLIC_WS_URL</code> / <code>NEXT_PUBLIC_INSTANCE_NAME</code>。</li>
-  <li><b>NEXT_PUBLIC_SF_SITE_URL を追加</b>(G-8・frontend 側): 値は設定するが<b>現行イメージでは反映されない</b>旨をコメントで明記(既知制限 2)。
+  <li><b>NEXT_PUBLIC_SF_SITE_URL を追加</b>(G-8・frontend 側)。ビルド時焼き込みは frontend PR #25/#26 で対応済み(既知制限 2 は解消)。但し書き: 既知制限コメント(NEXT_PUBLIC_* はビルド時埋め込み)は<b>実値側 <code>frontend.env</code> に記載されており、example 側には無し</b>(example にコメントを追記するかは任意)。
 <pre><code>NEXT_PUBLIC_API_URL=http://localhost:3001/v1
-# 注意: NEXT_PUBLIC_* 是构建时嵌入，运行时注入对客户端 bundle 无效（dev fallback=localhost:3001 恰为正确值）
 NEXT_PUBLIC_SF_SITE_URL=http://localhost:3000</code></pre>
   </li>
 </ol>
@@ -285,7 +285,7 @@ RUN npx prisma generate        # ← 追加: Prisma Client を生成する(backe
   <li>CI 運用に一本化するなら削除してもよい(判断は実施者に任せる)。</li>
 </ol>
 
-<div class="step-head">Step 7: GitHub 設定の確認(booking-deploy リポジトリ) <span class="tag p1">一部済み — ローカル DOCKER_HUB_USER は実証済み(実行成功)。GitHub 側 secrets/vars の設定状況は要確認</span></div>
+<div class="step-head">Step 7: GitHub 設定の確認(booking-deploy リポジトリ) <span class="tag ok">dev 分実証済み(2026-09-23 更新)</span> — dev leg は PR #5 の CI(verify-images dev)SUCCESS により <code>vars.DOCKER_HUB_USER</code> / <code>secrets.DEV_*</code> の実機能を実証済み。prod 側は matrix [dev] のため未検証のまま</div>
 <table>
   <tr><th>種別</th><th>名前</th><th>用途</th></tr>
   <tr><td>Variable</td><td><code>DOCKER_HUB_USER</code></td><td>verify-images.yml が <code>{{DOCKER_HUB_USER}}</code> を置換するのに必須(74 行)。未設定なら <code>docker.io//...</code> となり pull 失敗</td></tr>
@@ -293,7 +293,7 @@ RUN npx prisma generate        # ← 追加: Prisma Client を生成する(backe
   <tr><td>Secret</td><td><code>DEV_POSTGRES_PASSWORD</code></td><td>compose env の postgres パスワード注入(78 行)</td></tr>
   <tr><td>Secret</td><td><code>DEV_DB_PASSWORD</code></td><td>backend.env の DATABASE_URL パスワード注入(79 行)<b>※ DEV_POSTGRES_PASSWORD と同一値を運用すること(二重管理の要注意点)</b></td></tr>
   <tr><td>Secret</td><td><code>DEV_JWT_SECRET</code> / <code>DEV_JWT_REFRESH_SECRET</code></td><td>backend.env 注入(80-81 行)</td></tr>
-  <tr><td>Secret</td><td><code>PROD_*</code> 4 件(POSTGRES_PASSWORD / DB_PASSWORD / JWT_SECRET / JWT_REFRESH_SECRET)</td><td><b>dev 適用では未参照</b>(matrix [dev] 化のため)。prod leg 復活時(§6)に必須 — workflow は 84-87/103-106 行で静的参照しているため設定漏れに注意</td></tr>
+  <tr><td>Secret</td><td><code>PROD_*</code> 4 件(POSTGRES_PASSWORD / DB_PASSWORD / JWT_SECRET / JWT_REFRESH_SECRET)</td><td><b>dev 適用では未参照</b>(matrix [dev] 化のため)。prod leg 復活時(§6)に必須 — workflow は 84-87/103-106 行で静的参照。<b>4 件とも 2026-04-10 に設定済み</b>(gh secret list 実測・実効性は prod leg 未検証のため未確認)</td></tr>
 </table>
 
 <h2>4. 修正後の実行・検証フロー</h2>
@@ -332,28 +332,28 @@ bash scripts/verify-images.sh dev</code></pre>
 <table>
   <tr><th>項目</th><th>内容</th></tr>
   <tr><td>prod タグ体系の意思決定</td><td>アプリ側に master/main ブランチが実在しないため、「prod=develop の pinned sha」にするのか、prod ブランチ/tag(v*)運用を再導入するのかを先に決める必要がある。compose prod・verify-images prod leg(88 行)・prod.compose.env.example(コメント含む)はその決定後に修正</td></tr>
-  <tr><td>PROD_* secrets の設定</td><td>prod leg 復活時に 4 件を設定(Step 7 の表参照)</td></tr>
-  <tr><td>NEXT_PUBLIC ビルド時注入(アプリ側改修)</td><td>booking-frontend Dockerfile に ARG/build-args + frontend-image.yml の build-args、またはランタイム設定配信機構。prod の API URL 到達には必須</td></tr>
+  <tr><td>PROD_* secrets の設定</td><td><b>既に設定済み</b>(2026-04-10・4 件実在を gh secret list で確認)— prod leg 復活時は値の実効性が未検証(Step 7 の表参照)</td></tr>
+  <tr><td>NEXT_PUBLIC ビルド時注入(アプリ側改修)</td><td>残課題は <code>NEXT_PUBLIC_API_URL</code> のビルド時注入(<code>NEXT_PUBLIC_SF_SITE_URL</code> 分は PR #25/#26 の ARG/build-args 対応で解消済み — 既知制限 2)。prod の API URL 到達には必須</td></tr>
   <tr><td>verify-images.yml prod leg</td><td>matrix を [dev, prod] に戻す際、88 行の <code>main-abc123def→develop</code> 置換を正す</td></tr>
   <tr><td>TLS / Secure Cookie</td><td>prod compose は HTTP のみで auth が Secure cookie を強制 → TLS 終端の設計が必要</td></tr>
-  <tr><td>SF 鍵マウント</td><td>compose secrets / volumes で certs 鍵を供給し <code>SF_PRIVATE_KEY_PATH</code> を接続</td></tr>
+  <tr><td>SF 鍵マウント</td><td><b>【解消済み(2026-09-23)】</b>commit <code>806512a</code> で dev compose に <code>../certs:/app/certs</code> を定義・<code>env/dev/backend.env</code> 42-49 行に <code>SF_*</code> 実値と <code>SF_PROJECTION_ENABLED=true</code> を投入済み(prod 側は復活時に対応)</td></tr>
   <tr><td>seed の自動化・内容見直し</td><td>seed.ts の実メール問題の解消 + workflow_dispatch ジョブ化</td></tr>
-  <tr><td>MAIL 実配信</td><td>dev の MAIL_* はプレースホルダ。実配信が必要になったら SMTP 設定+検証を追加</td></tr>
+  <tr><td>MAIL 実配信</td><td><b>実値は 2026-09-22 に実配信確認済み</b>(実メール受信・ログイン成功 — §1.4)。example・CI はプレースホルダのまま(必要時に SMTP 値を注入)</td></tr>
   <tr><td>docker-compose.prod.yml の name:</td><td>復活時に <code>name: booking-prod</code> を必須で付与(プロジェクト名衝突回避)</td></tr>
   <tr><td>verify-images.sh prod 分岐</td><td>50 行の <code>s/main-abc123def/main/g</code> は prod タグ体系確定まで要修正扱い(Step 1-3 の注記参照)</td></tr>
 </table>
 
 <h2>7. 参照(根拠の代表ファイル:行)</h2>
-<p class="meta">※ 本文の <code>scripts/verify-images.sh</code> の行番号(113-120 等)は <b>Step 1 適用前の基準</b>です。実ファイルには WIP 修正(4 ループの exit 追加)が入っており、ループごとに +1〜+27 行シフト(ファイル末尾基準で +36)しています。§1.4 が引用する 33-59 / 62-82 は現行ファイルでも有効です。</p>
+<p class="meta">※ <code>scripts/verify-images.sh</code> は現在 260 行(wc -l 実測)。現行基準では cp/sed ループが 33-61、<code>generate_app_env</code> が 64-87、<code>pull</code> が 103 行目です(§1.4 の引用行番号は現行基準に更新済み)。本文の行番号(113-120 等)は <b>Step 1 適用前の基準</b>であり(4 ループの exit 追加等によるシフト)、現行ファイルの該当行とは一致しません。</p>
 <ul>
   <li>検証非厳格: booking-deploy/scripts/verify-images.sh — ループ本体 113-120 / 123-130 / 148-155 / 177-184、無条件成功表示 204(対比: scripts/deploy-dev.sh:75,88,101)</li>
   <li>health 形式: booking-backend/src/common/health/health.service.ts:22-47(checks.*.status up/down・unhealthy 時 503)</li>
   <li>env バリデーション不在: booking-backend/src/app.module.ts:31(ConfigModule.forRoot、validate 無し)</li>
   <li>seed 前提欠陥: booking-backend/Dockerfile.migrate:10→12 の順序(生成物なし)・tsconfig 未同梱(対比: backend Dockerfile:17,20)</li>
-  <li>NEXT_PUBLIC 焼き込み: booking-frontend/Dockerfile:12-16(ARG なし)・.dockerignore:6-7・src/services/api.ts:8(fallback)</li>
+  <li>NEXT_PUBLIC 焼き込み: booking-frontend/Dockerfile:15-16(2026-09-23 現在: SF_SITE_URL 用 ARG のみ追加済み(#25)・API_URL 用 ARG は無し)・.dockerignore:6-7・src/services/api.ts:8(fallback)</li>
   <li>タグ体系: booking-backend/.github/workflows/backend-image.yml:49-55(branch / branch-sha)・frontend-image.yml:48-52(branch / sha-)</li>
   <li>URL 照合の非対称: booking-backend/src/main.ts:97(trim あり)・src/common/websocket/websocket.gateway.ts:76(trim なし)</li>
-  <li>稼働確認済みタグ: develop=d8e3522(backend)/8596eff(frontend)・booking-deploy には origin/master が実在</li>
+  <li>稼働確認済みタグ: develop=68d708e(backend)/7e0f83a(frontend)・booking-deploy には origin/master が実在(現行検証ブランチ feat/dev-adoption=806512a)</li>
 </ul>
 
 <p class="meta">本書は読み取りレビューの成果に基づく計画書であり、コード変更は含まない。実施は各 Step の完了条件と §5 の受け入れ基準で管理する。rev.2 は二重審査(審査者A: general-purpose / 審査者B: high-precision)の指摘を主会話が裁定・反映した版。</p>
