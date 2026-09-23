@@ -37,7 +37,7 @@
 <p class="meta">作成日: 2026-09-22 / 更新日: 2026-09-23 / <b>rev.8(G-6 解消・Step 3 を完了化)</b> / 根拠: 二重独立審査モード(審査者A: general-purpose・審査者B: high-precision・主会話 Gate 裁定済み)+ rev.3 以降は general-purpose 単独審査の反復(第2回で合格)<br>
 スコープ: <b>dev 環境の適用のみ</b>。prod は後回し(§1.2)。</p>
 
-<div class="fix"><b>rev.8 変更点(G-6 解消・2026-09-23)</b>: <b>Step 3 を完了化</b> — <code>compose/dev.compose.env.example</code> のタグ説明コメントを実態(develop ブランチタグのみ・latest 定義無し・backend/migration=<code>develop-&lt;sha7&gt;</code>・frontend=<code>sha-&lt;sha7&gt;</code>)に修正(commit <code>60644d6</code>)。アンカー値 <code>dev-abc123def</code> と sed 置換は無変更(アンカー維持方針どおり)。最終形ブロック外の情報(ファイル先頭タイトル行・POSTGRES パスワード一致の注意書き)は保持。併せて行番号注記 82→84(verify-images.yml の <code>s/dev-abc123def/develop/g</code>)を修正。</div>
+<div class="fix"><b>rev.8 変更点(G-6 解消・2026-09-23)</b>: <b>Step 3 を完了化</b> — <code>compose/dev.compose.env.example</code> のタグ説明コメントを実態(develop ブランチタグのみ・latest 定義無し・backend/migration=<code>develop-&lt;sha7&gt;</code>・frontend=<code>sha-&lt;sha7&gt;</code>)に修正(commit <code>60644d6</code>)。アンカー値 <code>dev-abc123def</code> と sed 置換は無変更(アンカー維持方針どおり)。最終形ブロック外の情報(ファイル先頭タイトル行・POSTGRES パスワード一致の注意書き)は保持。併せて行番号注記 82→84(verify-images.yml の <code>s/dev-abc123def/develop/g</code>)を修正。§5 受け入れ基準 11 項目に現状照合のチェックを付与(✔ 実測合格 5・△ 部分実測 6・☐ 未検証 0)。</div>
 <div class="fix"><b>rev.7 変更点(監査反映・2026-09-23)</b>: <b>SF 関連の既知制限 2 件を解消</b> — 制限 2(<code>NEXT_PUBLIC_SF_SITE_URL</code> のビルド時焼き込み)は frontend PR #25/#26(frontend develop=<code>7e0f83a</code>・稼働イメージ <code>8ca1f296</code> の配信 chunk に URL 実在・実ブラウザで「Salesforce 管理ワークベンチ」ボタンの有効化を確認)で解消、制限 3(SF 鍵マウント)は commit <code>806512a</code> の <code>../certs:/app/certs</code> 定義 + <code>env/dev/backend.env</code> 42-49 行の <code>SF_*</code>/<code>INTEGRATION_TOKEN</code> 実値投入で解消。<b>HEAD/PR 状態を現行化</b>(backend <code>68d708e</code>・frontend <code>7e0f83a</code>・booking-deploy feat/dev-adoption <code>806512a</code>(develop に 17 コミット先行)・PR #5 は OPEN/REVIEW_REQUIRED/BLOCKED)。<b>Step 3 の G-6 を未実施化</b>(example のコメントが旧文言のまま)。§7 の行番号注記を現行基準へ更新・§1.4 に LF 未正規化(CRLF 残存)の但し書きを追加。</div>
 <div class="fix"><b>rev.6 変更点(方針の最終統一)</b>: <code>compose/dev.compose.env</code> を <code>:develop</code> 可変タグで 1 回作成する方式に決定(<b>作成済み</b>・gitignore 対象)。作成後の保守はゼロで、pull(98 行)が毎回最新 digest を取得するため「毎回最新イメージ」の目標は維持。これにより <code>DOCKER_HUB_USER</code> 環境変数は<b>ローカル実行では不要</b>(新規 checkout でのみ Step 1-3 の注入経路が発火)。prod 側は作成しない(§6)。</div>
 
@@ -315,18 +315,19 @@ bash scripts/verify-images.sh dev</code></pre>
 </ol>
 
 <h2>5. 受け入れ基準(Acceptance Criteria)</h2>
+<p class="meta">※ 以下のチェックは <b>2026-09-23 の現状照合</b>で付与(実測/記録根拠により判定)。✔=実測合格・△=部分実測(注記参照)。</p>
 <ul class="checklist">
-  <li><b>負試験(G-1)</b>: <code>verify-images.sh dev</code> の待機ループ中に別端末で <code>docker stop booking-backend-dev</code>(または <code>booking-postgres-dev</code>)→ タイムアウト後に非 0 終了し logs/down が走る。</li>
-  <li><b>health 判定(G-2)</b>: 正常時に DB/Redis 判定が ✅。<code>docker stop booking-redis-dev</code> を待機中に実行すると ⚠️ または失敗になる( unhealthy 時は health エンドポイントが 503 を返すため curl -f でも検知)。</li>
-  <li><b>空 secrets ガード(G-3)</b>: いずれかの DEV_* secret を未設定のまま実行すると、sed 直後のガードで早期に赤になる。特に <code>DEV_DB_PASSWORD</code> 未設定では「行中欠損」パターン(ガード 2)で検出される。</li>
-  <li><b>ローカル実行(G-4)</b>: 環境変数 <code>DOCKER_HUB_USER</code> 付きで <code>verify-images.sh dev</code> が完走する。</li>
-  <li><b>タグ実在(G-5/G-6)</b>: CI dev leg が生成する compose env のイメージ参照が <code>:develop</code> であり、pull・起動が成功する。</li>
-  <li><b>env トリガー(G-7)</b>: <code>env/**</code> のみを変更した PR で verify-images.yml が起動する。</li>
-  <li><b>seed(G-11)</b>: Step 5 の前提修正済みイメージで seed が成功し、ログイン可能。</li>
-  <li><b>uploads 永続化(G-10)</b>: <code>docker compose ... up -d --force-recreate backend</code> 後も uploads 配下のファイルが残る。</li>
-  <li><b>プロジェクト分離(G-12)</b>: <code>docker compose -f compose/docker-compose.dev.yml ps</code> のプロジェクト名が <code>booking-dev</code> になり、dev の <code>down -v</code> が他スタック(prod 復活後)を破壊しない。</li>
-  <li><b>127.0.0.1 経由(G-14)</b>: <code>http://127.0.0.1:3000</code> でフロントを開き、API 呼び出しとログイン(CORS 通過)が成功する。</li>
-  <li><b>retention dry-run(G-8・実値反映済み)</b>: dev 起動後のログで retention ジョブが dry-run(削除 0 件)で動作することを確認(<code>RETENTION_DRY_RUN=true</code> は実値側に適用済み)。</li>
+  <li><span class="tag ok">✔ 実測合格(2026-09-22)</span> <b>負試験(G-1)</b>: <code>verify-images.sh dev</code> の待機ループ中に別端末で <code>docker stop booking-backend-dev</code>(または <code>booking-postgres-dev</code>)→ タイムアウト後に非 0 終了し logs/down が走る。<br><span class="src">2026-09-23 照合: 負試験 2 経路(ループタイムアウト・migration 依存)とも 2026-09-22 に非 0 終了+down 実行を実測済み(Step 1 バッジ参照)。</span></li>
+  <li><span class="tag p1">△ 部分実測</span> <b>health 判定(G-2)</b>: 正常時に DB/Redis 判定が ✅。<code>docker stop booking-redis-dev</code> を待機中に実行すると ⚠️ または失敗になる( unhealthy 時は health エンドポイントが 503 を返すため curl -f でも検知)。<br><span class="src">2026-09-23 照合: 正常時の DB/Redis ✅ 表示は通し実行で実測済み。redis 停止の個別負試験は未実施(同一待機ループの負経路は G-1 で postgres により実証済み)。</span></li>
+  <li><span class="tag p1">△ 部分実測</span> <b>空 secrets ガード(G-3)</b>: いずれかの DEV_* secret を未設定のまま実行すると、sed 直後のガードで早期に赤になる。特に <code>DEV_DB_PASSWORD</code> 未設定では「行中欠損」パターン(ガード 2)で検出される。<br><span class="src">2026-09-23 照合: ガード 4 種の実装を workflow で実測(94/98/102/106 行=行頭 KEY=/行中欠損/compose 空値/残存プレースホルダ)。発火負試験は未実施(PR #5 の CI 緑は正常系のみ)。</span></li>
+  <li><span class="tag ok">✔ 実測合格(2026-09-22)</span> <b>ローカル実行(G-4)</b>: 環境変数 <code>DOCKER_HUB_USER</code> 付きで <code>verify-images.sh dev</code> が完走する。<br><span class="src">2026-09-23 照合: 通し実行(pull→起動→全チェック→成功バナー)を 2026-09-22 に完走実測。</span></li>
+  <li><span class="tag ok">✔ 実測合格(2026-09-22・継続中)</span> <b>タグ実在(G-5/G-6)</b>: CI dev leg が生成する compose env のイメージ参照が <code>:develop</code> であり、pull・起動が成功する。<br><span class="src">2026-09-23 照合: :develop での pull→起動を実測済み+CI dev leg SUCCESS。2026-09-23 現在も 4 コンテナが develop イメージで稼働中。</span></li>
+  <li><span class="tag p1">△ 部分実測</span> <b>env トリガー(G-7)</b>: <code>env/**</code> のみを変更した PR で verify-images.yml が起動する。<br><span class="src">2026-09-23 照合: paths の env/** を push 側(11 行)と PR 側(20 行)の両方に実装実測。env のみ変更 PR での起動実証は未実施。</span></li>
+  <li><span class="tag ok">✔ 実測合格(2026-09-22)</span> <b>seed(G-11)</b>: Step 5 の前提修正済みイメージで seed が成功し、ログイン可能。<br><span class="src">2026-09-23 照合: seed exit 0(管理者 3 名)+実メール受信・ログイン成功+第 4 部マッピング行実在(2026-09-22 16:43 seed)まで実測済み。</span></li>
+  <li><span class="tag ok">✔ 実測合格(2026-09-22)</span> <b>uploads 永続化(G-10)</b>: <code>docker compose ... up -d --force-recreate backend</code> 後も uploads 配下のファイルが残る。<br><span class="src">2026-09-23 照合: force-recreate 残存試験合格に加え、volume 実在+マウントを 2026-09-23 に再確認(booking-dev_booking_uploads_dev → /app/uploads)。</span></li>
+  <li><span class="tag p1">△ 部分実測</span> <b>プロジェクト分離(G-12)</b>: <code>docker compose -f compose/docker-compose.dev.yml ps</code> のプロジェクト名が <code>booking-dev</code> になり、dev の <code>down -v</code> が他スタック(prod 復活後)を破壊しない。<br><span class="src">2026-09-23 照合: プロジェクト名 = booking-dev をラベル実測で確認(com.docker.compose.project)。down -v の分離実証は prod 復活後(§6)に可能。</span></li>
+  <li><span class="tag p1">△ 部分実測</span> <b>127.0.0.1 経由(G-14)</b>: <code>http://127.0.0.1:3000</code> でフロントを開き、API 呼び出しとログイン(CORS 通過)が成功する。<br><span class="src">2026-09-23 照合: CORS プリフライトを実測(OPTIONS → 204 + Access-Control-Allow-Origin: http://127.0.0.1:3000 + credentials 付与)。フルログインの 127.0.0.1 実行は未実施(実メール配信を伴うため。SameSite 上、127.0.0.1 に統一すれば same-site で機構上成立)。</span></li>
+  <li><span class="tag p1">△ 部分実測</span> <b>retention dry-run(G-8・実値反映済み)</b>: dev 起動後のログで retention ジョブが dry-run(削除 0 件)で動作することを確認(<code>RETENTION_DRY_RUN=true</code> は実値側に適用済み)。<br><span class="src">2026-09-23 照合: RetentionScheduler の cron 登録(0 30 2 * * *)を logs 実測。dry-run 実行ログ(削除 0 件)はコンテナ起動時間の関係で未観測 — 次回 02:30 以降に確認。</span></li>
 </ul>
 
 <h2>6. 保留事項(prod 復活時に持ち越す)</h2>
